@@ -117,7 +117,7 @@ static void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) {
 volatile bool status_A = false;
 volatile bool status_B = false;
 
-void irq_handler(uint gpio, uint32_t event_mask)
+void encoder_callback(uint gpio, uint32_t event_mask)
 {
     switch(gpio)
     {
@@ -143,7 +143,13 @@ int main()
     mpu6050_reset();
 
     //ENKODER
-    gpio_set_irq_enabled_with_callback(ENC_ROT_A,GPIO_IRQ_EDGE_FALL,true,&irq_handler);
+    gpio_set_irq_enabled(ENC_ROT_A, GPIO_IRQ_EDGE_FALL, true);
+    gpio_set_irq_enabled(ENC_ROT_B, GPIO_IRQ_EDGE_FALL, true);
+    gpio_set_irq_callback(&encoder_callback);
+    irq_set_enabled(IO_IRQ_BANK0, true);
+
+    // gpio_set_irq_enabled_with_callback(ENC_ROT_A, GPIO_IRQ_EDGE_FALL, true, &encoder_callback);
+    // gpio_set_irq_enabled_with_callback(ENC_ROT_B, GPIO_IRQ_EDGE_FALL, true, &encoder_callback);
     
 
    
