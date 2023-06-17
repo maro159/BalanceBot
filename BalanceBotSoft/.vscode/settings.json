@@ -26,6 +26,7 @@
     "files.associations": {
         "stdlib.h": "c",
         "stdio_uart.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "*.s": "c"
     }
 }

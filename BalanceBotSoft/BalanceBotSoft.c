@@ -34,8 +34,8 @@ static void Init()
     gpio_set_function(SERWO, GPIO_FUNC_PWM);
        
     // uart_init(BT_UART, BT_BAUDRATE);
-    // stdio_uart_init_full(BT_UART, BT_BAUDRATE, BT_TX, BT_RX);
-    stdio_init_all();
+    stdio_uart_init_full(BT_UART, BT_BAUDRATE, BT_TX, BT_RX);
+    // stdio_init_all();
     gpio_set_function(BT_TX, GPIO_FUNC_UART);
     gpio_set_function(BT_RX, GPIO_FUNC_UART);
     
@@ -92,6 +92,7 @@ static void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) {
         accel[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);
     }
 
+
     // Now gyro data from reg 0x43 for 6 bytes
     // The register is auto incrementing on each read
     val = 0x43;
@@ -116,7 +117,7 @@ int main()
 
     Init();
 
-    stdio_init_all();    
+    // stdio_init_all();    
     // stdio_set_uart_enabled(uart0, true);
     // uart_set_baudrate(uart0, 115200);
 
