@@ -117,21 +117,18 @@ static void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) {
 volatile bool status_A = false;
 volatile bool status_B = false;
 
-void a_handler(){
-
-    status_A = !status_A;   
-    printf(" A");
-   
-    
+void irq_handler(uint gpio, uint32_t event_mask)
+{
+    switch(gpio)
+    {
+        case ENC_ROT_A:
+        status_A = true;
+        case ENC_ROT_B:
+        status_B = true;
+        default:
+        printf("Nieznane przerwanie");
+    }
 }
-void b_handler(){
-
-    // status_B = !status_B;   
-    printf("B");
-   
-     
-}
-
 
 int main()
 {
@@ -146,16 +143,24 @@ int main()
     mpu6050_reset();
 
     //ENKODER
-    gpio_set_irq_enabled_with_callback(ENC_ROT_B,GPIO_IRQ_EDGE_RISE,true,&b_handler);
-    gpio_set_irq_enabled_with_callback(ENC_ROT_A,GPIO_IRQ_EDGE_FALL,true,&a_handler);
+    gpio_set_irq_enabled_with_callback(ENC_ROT_A,GPIO_IRQ_EDGE_FALL,true,&irq_handler);
     
 
    
     
-    while(true){
-        tight_loop_contents();      
-    
-        
+    while(true)
+    {
+        if(status_A)
+        {
+            printf("A");
+            status_A = false;
+        }
+        if(status_B)
+        {
+            printf("B");
+            status_B = false;
+        }
+        tight_loop_contents(); 
     }
 
 
