@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
-set(PICO_SDK_PATH "C:\proj2\Pico SDK v1.5.0\pico-sdk")
+# set(PICO_SDK_PATH "C:\proj2\Pico SDK v1.5.0\pico-sdk")
 
 set(PICO_BOARD pico CACHE STRING "Board type")
 
@@ -20,7 +20,8 @@ endif()
 
 project(BalanceBotSoft C CXX ASM)
 
-set(CMAKE_C_COMPILER "C:\proj2\Pico SDK v1.5.0\gcc-arm-none-eabi")
+# set(CMAKE_C_COMPILER "C:\proj2\Pico SDK v1.5.0\gcc-arm-none-eabi")
+
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
