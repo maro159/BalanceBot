@@ -12,6 +12,7 @@
 #include "pins.h"
 
 
+
 static int addr = 0x68;
 
 static void Init()
@@ -32,10 +33,10 @@ static void Init()
     gpio_set_function(MOTOR_B2, GPIO_FUNC_PWM);
 
     gpio_set_function(SERWO, GPIO_FUNC_PWM);
-       
+
     // uart_init(BT_UART, BT_BAUDRATE);
-    // stdio_uart_init_full(BT_UART, BT_BAUDRATE, BT_TX, BT_RX);
-    stdio_init_all();
+    stdio_uart_init_full(BT_UART, BT_BAUDRATE, BT_TX, BT_RX);
+    // stdio_init_all();
     gpio_set_function(BT_TX, GPIO_FUNC_UART);
     gpio_set_function(BT_RX, GPIO_FUNC_UART);
     
@@ -109,23 +110,69 @@ static void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) {
     i2c_read_blocking(IMU_I2C, addr, buffer, 2, false);  // False - finished with bus
 
     *temp = buffer[0] << 8 | buffer[1];
+  
 }
+
+
+volatile bool status_A = false;
+volatile bool status_B = false;
+
+void a_handler(){
+
+    status_A = !status_A;   
+    printf(" A");
+   
+    
+}
+void b_handler(){
+
+    // status_B = !status_B;   
+    printf("B");
+   
+     
+}
+
 
 int main()
 {
 
     Init();
 
-    stdio_init_all();    
+    // stdio_init_all();    
     // stdio_set_uart_enabled(uart0, true);
     // uart_set_baudrate(uart0, 115200);
 
     uart_puts(BT_UART, "Hello, MPU6050! Reading raw data from registers...\n");
     mpu6050_reset();
 
-    int16_t acceleration[3], gyro[3], temp;
+    //ENKODER
+    gpio_set_irq_enabled_with_callback(ENC_ROT_B,GPIO_IRQ_EDGE_RISE,true,&b_handler);
+    gpio_set_irq_enabled_with_callback(ENC_ROT_A,GPIO_IRQ_EDGE_FALL,true,&a_handler);
+    
 
-    while (1) {
+   
+    
+    while(true){
+        tight_loop_contents();      
+    
+        
+    }
+
+
+
+/*    //BUZZ TEST
+    while(true){
+        gpio_put(BUZZ,1);
+        sleep_ms(1000);
+        gpio_put(BUZZ,0);
+        sleep_ms(500);
+    }
+ */   
+
+
+/* //odczyt acc,gyro,temp
+    int16_t acceleration[3], gyro[3], temp;
+while (1) {
         mpu6050_read_raw(acceleration, gyro, &temp);
 
         // These are the raw numbers from the chip, so will need tweaking to be really useful.
@@ -135,11 +182,11 @@ int main()
         // Temperature is simple so use the datasheet calculation to get deg C.
         // Note this is chip temperature.
         printf("Temp. = %f\n", (temp / 340.0) + 36.53);
+        printf("dupa bobra");
 
-        sleep_ms(100);
+        sleep_ms(1000);
     }
-
-
+*/
 
     
     /*stdio_init_all();
