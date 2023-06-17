@@ -7,11 +7,11 @@
         "${env:PICO_SDK_PATH}/**"
       ],
       "defines": [],
-      "compilerPath": "C:\\Program Files\\Raspberry Pi\\Pico SDK v1.5.0\\gcc-arm-none-eabi\\bin\\arm-none-eabi-gcc.EXE",
-      "cStandard": "c17",
-      "cppStandard": "c++14",
+      "compilerPath": "${env:PICO_INSTALL_PATH}/gcc-arm-none-eabi/bin/arm-none-eabi-gcc.exe",
+      "cStandard": "c11",
+      "cppStandard": "c++11",
       "intelliSenseMode": "linux-gcc-arm",
-      "configurationProvider" : "ms-vscode.cmake-tools"
+      "configurationProvider": "ms-vscode.cmake-tools"
     }
   ],
   "version": 4
