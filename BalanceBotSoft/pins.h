@@ -17,16 +17,20 @@
 #define BT_UART uart0
 #define BT_BAUDRATE 9600
 
-#define SERWO 11
-// #define SERWO_CHANNEL pwm_gpio_to_channel 
-// #define SERWO_SLICE 5
+#define SERWO 11 
+#define SERWO_SLICE 5
+#define SERWO_CHAN PWM_CHAN_B
 
 #define MOTOR_A1 3
 #define MOTOR_A2 2
 #define MOTOR_B1 5
 #define MOTOR_B2 4
-// #define MOTOR_A_SLICE 1 
-// #define MOTOR_B_SLICE 2
+#define MOTOR_A_SLICE 1
+#define MOTOR_A1_CHAN PWM_CHAN_B
+#define MOTOR_A2_CHAN PWM_CHAN_A
+#define MOTOR_B_SLICE 2
+#define MOTOR_B1_CHAN PWM_CHAN_B
+#define MOTOR_B2_CHAN PWM_CHAN_A
 
 #define MOTOR_ENC_AA 7
 #define MOTOR_ENC_AB 8

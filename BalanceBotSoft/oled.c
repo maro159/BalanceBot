@@ -1,11 +1,8 @@
 #include "oled.h"
-#include "pico/stdlib.h"
+#include <stdio.h>
+#include "pico/stdlib.h" 
 
-void oled_display(char *s)
+void display_oled(char *str)
 {
-
+    printf("Display oled: %s", str);
 }
-
-#ifdef MARO
-    for(int i =0; i<12; i++)
-#endif
