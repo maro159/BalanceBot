@@ -10,6 +10,7 @@
 #include "hardware/clocks.h"
 #include "hardware/adc.h"
 #include "pins.h"
+#include "oled.h"
 
 
 static int addr = 0x68;
@@ -139,7 +140,7 @@ int main()
         sleep_ms(100);
     }
 
-
+    display_oled("Hello");
 
     
     /*stdio_init_all();

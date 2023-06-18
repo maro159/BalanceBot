@@ -27,7 +27,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(BalanceBotSoft BalanceBotSoft.c)
+add_executable(BalanceBotSoft BalanceBotSoft.c oled.c)
 
 pico_set_program_name(BalanceBotSoft "BalanceBotSoft")
 pico_set_program_version(BalanceBotSoft "0.1")
