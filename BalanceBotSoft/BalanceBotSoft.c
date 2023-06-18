@@ -35,8 +35,8 @@ static void Init()
     gpio_set_function(SERWO, GPIO_FUNC_PWM);
        
     // uart_init(BT_UART, BT_BAUDRATE);
-    // stdio_uart_init_full(BT_UART, BT_BAUDRATE, BT_TX, BT_RX);
-    stdio_init_all();
+    stdio_uart_init_full(BT_UART, BT_BAUDRATE, BT_TX, BT_RX);
+    //stdio_init_all();
     gpio_set_function(BT_TX, GPIO_FUNC_UART);
     gpio_set_function(BT_RX, GPIO_FUNC_UART);
     
