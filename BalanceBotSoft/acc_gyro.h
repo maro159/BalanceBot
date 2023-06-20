@@ -4,10 +4,15 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 
+
+
 extern int16_t acceleration[];
 extern int16_t gyro[];
-extern int16_t  temp;
+extern int16_t temp;
 
 void acc_gyro_read();
+void mpu6050_reset();
+void mpu6050_read_raw();
+
 
 #endif
