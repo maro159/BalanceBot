@@ -1,3 +1,5 @@
+#include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
@@ -10,7 +12,9 @@
 #include "hardware/clocks.h"
 #include "hardware/adc.h"
 #include "pins.h"
-
+#include "oled.h"
+#include "encoder_rot.h"
+#include "menu.h"
 
 
 static int addr = 0x68;
@@ -114,151 +118,57 @@ static void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) {
 }
 
 
-volatile bool status_A = false;
-volatile bool status_B = false;
+menu_t *current_menu;
+set_t *current_values;
+const int32_t menu_main_order = 0;
+const int32_t menu_properties_order = 1;
+bool return_to_main_loop = false; 
 
-void encoder_callback(uint gpio, uint32_t event_mask)
-{
-    switch(gpio)
-    {
-        case ENC_ROT_A:
-        status_A = true;
-        case ENC_ROT_B:
-        status_B = true;
-        default:
-        printf("Nieznane przerwanie");
-    }
-}
+
 
 int main()
-{
-
+{    
     Init();
-
-    // stdio_init_all();    
-    // stdio_set_uart_enabled(uart0, true);
-    // uart_set_baudrate(uart0, 115200);
-
-    uart_puts(BT_UART, "Hello, MPU6050! Reading raw data from registers...\n");
-    mpu6050_reset();
-
-    //ENKODER
-    gpio_set_irq_enabled(ENC_ROT_A, GPIO_IRQ_EDGE_FALL, true);
-    gpio_set_irq_enabled(ENC_ROT_B, GPIO_IRQ_EDGE_FALL, true);
-    gpio_set_irq_callback(&encoder_callback);
-    irq_set_enabled(IO_IRQ_BANK0, true);
-
-    // gpio_set_irq_enabled_with_callback(ENC_ROT_A, GPIO_IRQ_EDGE_FALL, true, &encoder_callback);
-    // gpio_set_irq_enabled_with_callback(ENC_ROT_B, GPIO_IRQ_EDGE_FALL, true, &encoder_callback);
+    mpu6050_reset();     
+    oled_init();
+    current_menu = &menu_main;
+    oled_show_menu(current_menu);
+    oled_x(counter_en);
+    encoder_init(0, current_menu->count);     
     
-
-   
+    
     
     while(true)
-    {
-        if(status_A)
+    {         
+        if(encoder_changed) 
         {
-            printf("A");
-            status_A = false;
+            if(current_menu == &menu_main || current_menu == &menu_properties)
+            {
+                oled_x(counter_en);
+            }
+            else
+            {
+                // iNNE MENU
+            }
         }
-        if(status_B)
+
+        if(status_SW)
         {
-            printf("B");
-            status_B = false;
+            status_SW = false;
+            if(current_menu == &menu_main || current_menu == &menu_properties)
+            {
+                current_menu = current_menu->options[counter_en].ptr;
+                if(current_menu == NULL) {oled_clear(); break;}            
+                counter_en = 0;
+                last_count = 0;
+                oled_clear();
+                oled_show_menu(current_menu);   
+            }
+            else
+            {
+                // iNNE MENU
+            }
         }
-        tight_loop_contents(); 
+             
     }
-
-
-
-/*    //BUZZ TEST
-    while(true){
-        gpio_put(BUZZ,1);
-        sleep_ms(1000);
-        gpio_put(BUZZ,0);
-        sleep_ms(500);
-    }
- */   
-
-
-/* //odczyt acc,gyro,temp
-    int16_t acceleration[3], gyro[3], temp;
-while (1) {
-        mpu6050_read_raw(acceleration, gyro, &temp);
-
-        // These are the raw numbers from the chip, so will need tweaking to be really useful.
-        // See the datasheet for more information
-        printf("Acc. X = %d, Y = %d, Z = %d\n", acceleration[0], acceleration[1], acceleration[2]);
-        printf("Gyro. X = %d, Y = %d, Z = %d\n", gyro[0], gyro[1], gyro[2]);
-        // Temperature is simple so use the datasheet calculation to get deg C.
-        // Note this is chip temperature.
-        printf("Temp. = %f\n", (temp / 340.0) + 36.53);
-        printf("dupa bobra");
-
-        sleep_ms(1000);
-    }
-*/
-
-    
-    /*stdio_init_all();
-
-    // Set up our UART
-    uart_init(UART_ID, BAUD_RATE);
-    // Set the TX and RX pins by using the function select on the GPIO
-    // Set datasheet for more information on function select
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-    
-
-    // GPIO initialisation.
-    // We will make this GPIO an input, and pull it up by default
-    gpio_init(GPIO);
-    gpio_set_dir(GPIO, GPIO_IN);
-    gpio_pull_up(GPIO);
-    
-
-    // Example of using the HW divider. The pico_divider library provides a more user friendly set of APIs 
-    // over the divider (and support for 64 bit divides), and of course by default regular C language integer
-    // divisions are redirected thru that library, meaning you can just use C level `/` and `%` operators and
-    // gain the benefits of the fast hardware divider.
-    int32_t dividend = 123456;
-    int32_t divisor = -321;
-    // This is the recommended signed fast divider for general use.
-    divmod_result_t result = hw_divider_divmod_s32(dividend, divisor);
-    printf("%d/%d = %d remainder %d\n", dividend, divisor, to_quotient_s32(result), to_remainder_s32(result));
-    // This is the recommended unsigned fast divider for general use.
-    int32_t udividend = 123456;
-    int32_t udivisor = 321;
-    divmod_result_t uresult = hw_divider_divmod_u32(udividend, udivisor);
-    printf("%d/%d = %d remainder %d\n", udividend, udivisor, to_quotient_u32(uresult), to_remainder_u32(uresult));
-
-    // I2C Initialisation. Using it at 400Khz.
-    i2c_init(I2C_PORT, 400*1000);
-    
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
-
-
-    // Timer example code - This example fires off the callback after 2000ms
-    add_alarm_in_ms(2000, alarm_callback, NULL, false);
-
-    // Watchdog example code
-    if (watchdog_caused_reboot()) {
-        // Whatever action you may take if a watchdog caused a reboot
-    }
-    
-    // Enable the watchdog, requiring the watchdog to be updated every 100ms or the chip will reboot
-    // second arg is pause on debug which means the watchdog will pause when stepping through code
-    watchdog_enable(100, 1);
-    
-    // You need to call this function at least more often than the 100ms in the enable call to prevent a rebootwatchdog_update();
-
-
-
-    puts("Hello, world!");
-    */
-
-    return 0;
 }

@@ -35,6 +35,11 @@
 #define SSD1306_WRITE_MODE         _u(0xFE)
 #define SSD1306_READ_MODE          _u(0xFF)
 
+#include <stdio.h>
+#include "pico/stdlib.h"
+#include "menu.h"
+
+
 struct render_area {
     uint8_t start_col;
     uint8_t end_col;
@@ -61,5 +66,11 @@ static void FillReversedCache();
 static void WriteChar(uint8_t *buf, int16_t x, int16_t y, uint8_t ch);
 static void WriteString(uint8_t *buf, int16_t x, int16_t y, char *str);
 int oled_test();
+void oled_init();
+void oled_x(int y_pos);
+void oled_show_menu(menu_t *menu);
+int oled_check_counter();
+void oled_clear();
+
 
 #endif

@@ -26,6 +26,10 @@
     "files.associations": {
         "stdlib.h": "c",
         "stdio_uart.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "span": "c",
+        "binary_info.h": "c",
+        "cstdio": "c",
+        "*.s": "c"
     }
 }

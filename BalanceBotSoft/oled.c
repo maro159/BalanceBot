@@ -1,4 +1,5 @@
 #include "oled.h"
+#include "encoder_rot.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -8,9 +9,18 @@
 #include "hardware/i2c.h"
 #include "raspberry26x32.h"
 #include "ssd1306_font.h"
-#include <pins.h>
+#include "pins.h"
+#include "menu.h"
 
 
+uint8_t buf[SSD1306_BUF_LEN];
+struct render_area frame_area = 
+{
+    start_col: 0,
+    end_col : SSD1306_WIDTH - 1,
+    start_page : 0,
+    end_page : SSD1306_NUM_PAGES - 1
+};
 
 
 void calc_render_area_buflen(struct render_area *area) {
@@ -341,7 +351,7 @@ restart:
     return 0;
 }
 
-void oled_menu()
+void oled_init()
 {
     #if !defined(OLED_I2C) || !defined(OLED_SDA) || !defined(OLED_SCL)
     #warning i2c / SSD1306_i2d example requires a board with I2C pins
@@ -352,21 +362,55 @@ void oled_menu()
     SSD1306_init();
 
     // Initialize render area for entire frame (SSD1306_WIDTH pixels by SSD1306_NUM_PAGES pages)
-    struct render_area frame_area = {
-        start_col: 0,
-        end_col : SSD1306_WIDTH - 1,
-        start_page : 0,
-        end_page : SSD1306_NUM_PAGES - 1
-        };
-
+ 
     calc_render_area_buflen(&frame_area);
 
     // zero the entire display
-    uint8_t buf[SSD1306_BUF_LEN];
+    
     memset(buf, 0, SSD1306_BUF_LEN);
     render(buf, &frame_area);
 
 
 
     #endif
+}
+void oled_clear(){
+    memset(buf, 0, SSD1306_BUF_LEN);
+    render(buf, &frame_area);
+}
+
+void oled_show_menu(menu_t *menu)
+{    
+
+    int y = 0;
+    for (int i = 0 ;i < menu->count; i++) {
+        WriteString(buf, 17, y, menu->options[i].name);
+        y+=8;
+    }
+    render(buf, &frame_area);    
+}
+
+
+void oled_x(int y_pos)
+{ 
+    int y = 0;
+    for (int i = 0 ; i<6; i++) {
+        WriteString(buf, 0, y, " ");
+        y+=8;
+    }
+    WriteString(buf, 0, y_pos*8, "x");      
+    render(buf, &frame_area);   
+}
+
+
+int oled_check_counter()
+{
+    if(last_count != counter_en)
+    {
+    // printf("%d \n", counter_en);
+    oled_x(counter_en);
+    last_count = counter_en;
+    }
+
+    return last_count;
 }
