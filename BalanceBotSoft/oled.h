@@ -71,6 +71,7 @@ void oled_x(int y_pos);
 void oled_show_menu(menu_t *menu);
 int oled_check_counter();
 void oled_clear();
+void oled_show_values(set_t *current_value);
 
 
 #endif

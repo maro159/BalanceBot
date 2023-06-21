@@ -383,13 +383,23 @@ void oled_show_menu(menu_t *menu)
 {    
 
     int y = 0;
-    for (int i = 0 ;i < menu->count; i++) {
+    for (int i = 0 ;i < menu->limits->max; i++) {
         WriteString(buf, 17, y, menu->options[i].name);
         y+=8;
     }
     render(buf, &frame_area);    
 }
 
+void oled_show_values(set_t *current_value)
+{
+    // oled_clear();
+    int value = set_value(current_value);
+    char valueString[16];  
+    sprintf(valueString, "%d", value);  
+
+    WriteString(buf, 0, 16, valueString);
+    render(buf, &frame_area);
+}
 
 void oled_x(int y_pos)
 { 
@@ -403,14 +413,19 @@ void oled_x(int y_pos)
 }
 
 
-int oled_check_counter()
-{
-    if(last_count != counter_en)
-    {
-    // printf("%d \n", counter_en);
-    oled_x(counter_en);
-    last_count = counter_en;
-    }
+// int oled_check_counter()
+// {
+//     if(last_count != counter_en)
+//     {
+//     // printf("%d \n", counter_en);
+//     oled_x(counter_en);
+//     last_count = counter_en;
+//     }
 
-    return last_count;
+//     return last_count;
+// }
+
+inline void oled_render()
+{
+    render(buf, &frame_area); 
 }

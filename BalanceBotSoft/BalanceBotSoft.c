@@ -126,6 +126,11 @@ bool return_to_main_loop = false;
 
 
 
+
+
+
+
+
 int main()
 {    
     Init();
@@ -134,39 +139,53 @@ int main()
     current_menu = &menu_main;
     oled_show_menu(current_menu);
     oled_x(counter_en);
-    encoder_init(0, current_menu->count);     
+    encoder_init(current_menu->limits->min, current_menu->limits->max);
     
-    
+    current_values = &test_values;
+    int value = set_value(current_values);
     
     while(true)
     {         
-        if(encoder_changed) 
+        if(encoder_changed()) 
         {
-            if(current_menu == &menu_main || current_menu == &menu_properties)
+            printf("%d/%d", last_count, counter_en, last_count);
+            if(current_menu->menu_type == MENU_NORMAL)
             {
                 oled_x(counter_en);
             }
-            else
-            {
-                // iNNE MENU
+            else if (current_menu->menu_type == MENU_OPTION )
+            {   
+                // counter_en = 0;
+                int value = set_value(current_values);
+                oled_show_values(current_values);
             }
         }
 
         if(status_SW)
         {
+            
             status_SW = false;
-            if(current_menu == &menu_main || current_menu == &menu_properties)
+            if(current_menu->menu_type == MENU_NORMAL)
             {
                 current_menu = current_menu->options[counter_en].ptr;
+                encoder_set_limit(current_menu->limits->min, current_menu->limits->max);
                 if(current_menu == NULL) {oled_clear(); break;}            
                 counter_en = 0;
                 last_count = 0;
                 oled_clear();
                 oled_show_menu(current_menu);   
             }
-            else
+            else if( current_menu->menu_type == MENU_OPTION)
             {
-                // iNNE MENU
+                current_menu = current_menu->options[1].ptr;
+                if(status_SW) 
+                {
+                    status_SW = false; 
+                    current_menu = 
+                    break;
+
+                }
+
             }
         }
              

@@ -30,6 +30,22 @@
         "span": "c",
         "binary_info.h": "c",
         "cstdio": "c",
-        "*.s": "c"
+        "*.s": "c",
+        "*.tcc": "c",
+        "optional": "c",
+        "istream": "c",
+        "ostream": "c",
+        "ratio": "c",
+        "system_error": "c",
+        "array": "c",
+        "functional": "c",
+        "regex": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "variant": "c",
+        "chrono": "c",
+        "random": "c",
+        "limits": "c"
     }
 }
