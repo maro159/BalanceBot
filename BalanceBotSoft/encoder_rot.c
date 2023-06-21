@@ -6,29 +6,26 @@
 volatile bool status_A = false;
 volatile bool status_B = false;
 volatile bool status_SW = false;
-int32_t last_count = 0; 
-volatile int counter_en = 0;
+int32_t encoder_last = 0; 
+volatile int encoder_count = 0;
 int encoder_min = 0;
 int encoder_max = 0;
 
-void encoder_init(int min, int max) 
+void encoder_init() 
 {
     gpio_set_irq_enabled(ENC_ROT_A, GPIO_IRQ_EDGE_FALL, true);
     gpio_set_irq_enabled(ENC_ROT_B, GPIO_IRQ_EDGE_FALL, true);
     gpio_set_irq_enabled(ENC_ROT_SW, GPIO_IRQ_EDGE_FALL, true);
     gpio_set_irq_callback(&encoder_callback);
     irq_set_enabled(IO_IRQ_BANK0, true);
-    last_count = counter_en;
-    encoder_set_limit(min, max);
-   
+    encoder_last = encoder_count;
+    encoder_set_limit(0, 0);
 }
 
 void encoder_set_limit(int min, int max)
 {
     encoder_min = min; 
-    encoder_max = max-1; 
-
-
+    encoder_max = max; // TODO: -1 czy nie
 }
 
 void encoder_callback(uint gpio, uint32_t event_mask)
@@ -39,12 +36,12 @@ void encoder_callback(uint gpio, uint32_t event_mask)
         status_A = true;
         if(status_B)
         {
-            counter_en++;    
+            encoder_count++;    
             status_B = false;
             status_A = false;     
-            if(counter_en > encoder_max)
+            if(encoder_count > encoder_max)
             {
-                counter_en = encoder_min;
+                encoder_count = encoder_min;
             }   
         }
         break;
@@ -52,12 +49,12 @@ void encoder_callback(uint gpio, uint32_t event_mask)
         status_B = true;
         if(status_A)
         {
-            counter_en--;    
+            encoder_count--;    
             status_B = false;
             status_A = false; 
-            if(counter_en < encoder_min)
+            if(encoder_count < encoder_min)
             {
-                counter_en = encoder_max;
+                encoder_count = encoder_max;
             }          
         }
         break;
@@ -65,7 +62,7 @@ void encoder_callback(uint gpio, uint32_t event_mask)
         status_SW = true;     
         break;
         default:
-        printf("encoder_callback: %u \n",gpio);
+        printf("encoder_callback: %u \n",gpio); // TODO: usunąć
         break;
     } 
 }
@@ -73,15 +70,34 @@ void encoder_callback(uint gpio, uint32_t event_mask)
 
 bool encoder_changed()
 {
-    if(last_count != counter_en)
+    if(encoder_last != encoder_count)
     {
         // printf("enc_last_count: %d \n", counter_en);
-        last_count = counter_en;
+        encoder_last = encoder_count;
         return true;
     }
     else return false;
 }
 
+bool encoder_clicked()
+{
+    if(status_SW)
+    {
+        status_SW = false;
+        return true;
+    }
+    else return false;
+}
+
+int encoder_get()
+{
+    return encoder_count;
+}
+
+void encoder_set(int value)
+{
+    encoder_count = value;
+}
 
 
 

@@ -67,11 +67,11 @@ static void WriteChar(uint8_t *buf, int16_t x, int16_t y, uint8_t ch);
 static void WriteString(uint8_t *buf, int16_t x, int16_t y, char *str);
 int oled_test();
 void oled_init();
-void oled_x(int y_pos);
+void oled_display_x(int y_pos);
 void oled_show_menu(menu_t *menu);
 int oled_check_counter();
 void oled_clear();
-void oled_show_values(set_t *current_value);
+void oled_show_values(int value);
 
 
 #endif

@@ -381,27 +381,24 @@ void oled_clear(){
 
 void oled_show_menu(menu_t *menu)
 {    
-
     int y = 0;
-    for (int i = 0 ;i < menu->limits->max; i++) {
+    for (int i = 0; i < menu->limits.max; i++) {
         WriteString(buf, 17, y, menu->options[i].name);
         y+=8;
     }
     render(buf, &frame_area);    
 }
 
-void oled_show_values(set_t *current_value)
+void oled_show_values(int value)
 {
-    // oled_clear();
-    int value = set_value(current_value);
     char valueString[16];  
-    sprintf(valueString, "%d", value);  
+    sprintf(valueString, "%3f", value);  
 
     WriteString(buf, 0, 16, valueString);
     render(buf, &frame_area);
 }
 
-void oled_x(int y_pos)
+void oled_display_x(int y_pos)
 { 
     int y = 0;
     for (int i = 0 ; i<6; i++) {
