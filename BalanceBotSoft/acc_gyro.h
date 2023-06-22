@@ -12,7 +12,7 @@ extern int16_t temp;
 
 void acc_gyro_read();
 void mpu6050_reset();
-void mpu6050_read_raw();
+void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp);
 
 
 #endif

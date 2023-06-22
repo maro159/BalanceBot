@@ -31,5 +31,6 @@
         "binary_info.h": "c",
         "cstdio": "c",
         "*.s": "c"
-    }
+    },
+    "cortex-debug.variableUseNaturalFormat": false
 }

@@ -33,7 +33,7 @@ pico_set_program_name(BalanceBotSoft "BalanceBotSoft")
 pico_set_program_version(BalanceBotSoft "0.1") 
 
 pico_enable_stdio_uart(BalanceBotSoft 1)
-pico_enable_stdio_usb(BalanceBotSoft 0)
+# pico_enable_stdio_usb(BalanceBotSoft 1)
 
 # Add the standard library to the build
 target_link_libraries(BalanceBotSoft
