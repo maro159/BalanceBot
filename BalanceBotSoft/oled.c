@@ -382,14 +382,16 @@ void oled_clear(){
 void oled_show_menu(menu_t *menu)
 {    
     int y = 0;
-    for (int i = 0; i < menu->limits.max; i++) {
+    int limit = 1;
+    if(menu->menu_type == MENU_NORMAL) limit = menu->limits.max +1;
+    for (int i = 0; i < limit; i++) {
         WriteString(buf, 17, y, menu->options[i].name);
         y+=8;
     }
     render(buf, &frame_area);    
 }
 
-void oled_show_values(int value)
+void oled_show_value(float value)
 {
     char valueString[16];  
     sprintf(valueString, "%3f", value);  

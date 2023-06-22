@@ -69,9 +69,8 @@ int oled_test();
 void oled_init();
 void oled_display_x(int y_pos);
 void oled_show_menu(menu_t *menu);
-int oled_check_counter();
 void oled_clear();
-void oled_show_values(int value);
+void oled_show_value(float value);
 
 
 #endif

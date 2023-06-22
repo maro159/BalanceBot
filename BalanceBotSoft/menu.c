@@ -13,6 +13,10 @@
 #include "oled.h"
 #include "encoder_rot.h"
 
+menu_t *current_menu; // TODO: is static ok?
+static float initial_param;
+static float new_param;
+
 option_t menu_main_options[] =
 {
     {"RUN", &menu_properties},
@@ -23,7 +27,7 @@ option_t menu_main_options[] =
 option_t menu_properties_options[] =
 {
     {"VELOCITY", &menu_velocity},
-    {"ANGLE", &menu_properties},
+    {"ANGLE", &menu_angle},
     {"EXIT", &menu_main},
 };
 
@@ -33,9 +37,16 @@ option_t menu_velocity_options[] =
     {"", &menu_properties}, // tutaj wskaznik do menu poziom wyzej
 };
 
+option_t menu_angle_options[] =
+{
+    {"ANGLE", NULL}, // tutaj wskaznik do zapisu/odczytu parametru
+    {"", &menu_properties}, // tutaj wskaznik do menu poziom wyzej
+};
+
 menu_t menu_main = {MENU_NORMAL, menu_main_options, {0, MENU_SIZE(menu_main_options)-1, 1}};
 menu_t menu_properties = {MENU_NORMAL, menu_properties_options, {0, MENU_SIZE(menu_properties_options)-1, 1}};
 menu_t menu_velocity = {MENU_OPTION, menu_velocity_options, {-5.5,5.5,0.1}};
+menu_t menu_angle = {MENU_OPTION, menu_angle_options, {-180,180,1}};
 
 void menu_init()
 {
@@ -62,8 +73,8 @@ int menu_execute()
             }
             else if (current_menu->menu_type == MENU_OPTION )
             {   
-                current_value += encoder_get() * current_menu->limits.step;
-                oled_show_values(current_value);
+                new_param = initial_param + (encoder_get()) * current_menu->limits.step;
+                oled_show_value(new_param);
             }
         }
 
@@ -73,33 +84,40 @@ int menu_execute()
             if(current_menu->menu_type == MENU_NORMAL)
             {
                 nextMenu = current_menu->options[encoder_get()].ptr;
-                if(nextMenu == NULL) {oled_clear(); return 1;} // EXIT 
-
-                if(nextMenu->menu_type == MENU_OPTION)
-                {
-                    current_value = (*(float*)(nextMenu->options[0].ptr));    // get initial value of parameter
-                    int enc_min = roundf((-abs(current_value - nextMenu->limits.min))/(nextMenu->limits.step)); // calc limit for encoder
-                    int enc_max = roundf((abs(current_value - nextMenu->limits.max))/(nextMenu->limits.step)); 
-                    encoder_set_limit(enc_min, enc_max);    // TODO: check if currentValue > min && currentValue < max
-                    encoder_set(0);
-                }
-                else if (nextMenu->menu_type == MENU_NORMAL)
-                {
-                    encoder_set_limit(nextMenu->limits.min, nextMenu->limits.max);
-                    encoder_set(nextMenu->limits.min);  // to allow blocked menu options
-                }
             }
             else if(current_menu->menu_type == MENU_OPTION)
             {
                 nextMenu = current_menu->options[1].ptr;            // pointer to higher level menu
-                (*(float*)(current_menu->options[0].ptr)) = current_value;    // save value of parameter
-                encoder_set_limit(nextMenu->limits.min, nextMenu->limits.max);
-                encoder_set(nextMenu->limits.min);  // to allow blocked menu options
-                printf("parameter: %3f", current_value);    // TODO: temporary
+                (*(float*)(current_menu->options[0].ptr)) = new_param;    // save value of parameter
+                #ifdef DEBUG_MODE
+                printf("saved: %3f\n", new_param);    // TODO: temporary
+                #endif
             }
-
+            if(nextMenu == NULL) {oled_clear(); return 1;} // EXIT )
+            
             oled_clear();
             oled_show_menu(nextMenu);
+
+            if(nextMenu->menu_type == MENU_NORMAL)
+            {
+                encoder_set_limit(nextMenu->limits.min, nextMenu->limits.max);
+                encoder_set(nextMenu->limits.min);  // to allow blocked menu options
+                oled_display_x(nextMenu->limits.min); // TODO: move it to better place
+            }
+            else if(nextMenu->menu_type == MENU_OPTION)
+            {
+                initial_param = (*(float*)(nextMenu->options[0].ptr));    // get initial value of parameter
+                int enc_min = roundf(-abs((initial_param - nextMenu->limits.min)/(nextMenu->limits.step))); // calc limit for encoder
+                int enc_max = roundf(abs((initial_param - nextMenu->limits.max)/(nextMenu->limits.step)));
+                #ifdef DEBUG_MODE
+                printf("enc min: %d\t enc max: %d\n", enc_min, enc_max);
+                #endif
+                encoder_set_limit(enc_min, enc_max);    // TODO: check if currentValue > min && currentValue < max
+                encoder_set(0);
+                oled_show_value(initial_param);
+            }
+            else if(nextMenu == NULL) {oled_clear(); return 1;} // EXIT )
+            else {}
             current_menu = nextMenu;
         }
         return 0;

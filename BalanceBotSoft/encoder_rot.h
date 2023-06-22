@@ -1,11 +1,13 @@
 #ifndef _ENCODER_ROT_H_
 #define _ENCODER_ROT_H_
 
+// #define ENC_GO_AROUND
+
 // extern int32_t encoder_last; 
 // extern volatile int encoder_count;
 // extern volatile bool status_SW; 
-extern int encoder_min;
-extern int encoder_max;
+extern int32_t encoder_min;
+extern int32_t encoder_max;
 
 void encoder_init();
 void encoder_set_limit(int min, int max);
