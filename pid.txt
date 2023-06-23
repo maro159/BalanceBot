@@ -1,0 +1,29 @@
+target_speed [rpm]
+target_turn_speed [rpm]
+
+imu_data_ready ---> current_angle	[degrees]
+get_encoder_count -> current_speed_L, current_speed_R [rpm]
+
+
+NA START TARGET_ANGLE = 0
+speed_error = target_speed - mean(current_speed_L, current_speed_R) [rpm] srednia krocząca z 4 ostatnich
+speed_error ---pid_speed---> target_angle	[degrees]
+
+angle_error = target_angle - current_angle [degrees]
+angle_error ---pid_angle---> target_motor_speed	[rpm]
+
+target_motor_speed_L = target_motor_speed + target_turn_speed [rpm]
+target_motor_speed_R = target_motor_speed - target_turn_speed [rpm]
+
+motor_speed_L_error = target_motor_speed_L - current_robot_speed_L [rpm]
+motor_speed_R_error = target_motor_speed_R - current_robot_speed_R [rpm]
+
+motor_speed_R_error ---pid_motor_L---> motor_pwm_L	[pwm]
+motor_speed_R_error ---pid_motor_R---> motor_pwm_R	[pwm]
+
+
+PID					INPUT							OUTPUT							MIN/MAX				METHOD
+pid_speed			speed_error [rpm]				target_angle	[degrees]		-20/+20				na start można target_angle=0
+pid_angle			angle_error	[degrees]			target_motor_speed	[rpm]		-100/100			modelowanie na podstawie środka masy (lub Ziegler Niechols)
+pid_motor_L			motor_speed_L_error	[rpm]		motor_pwm_L	[pwm]				-65536/+65536		
+pid_motor_R			motor_speed_R_error [rpm]		motor_pwm_R	[pwm]				-65536/+65536

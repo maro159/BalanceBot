@@ -27,7 +27,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(BalanceBotSoft BalanceBotSoft.c oled.c motor.c pid.c)
+add_executable(BalanceBotSoft BalanceBotSoft.c motor.c pid.c)
 pico_generate_pio_header(BalanceBotSoft ${CMAKE_CURRENT_LIST_DIR}/quadrature_encoder.pio)
 
 pico_set_program_name(BalanceBotSoft "BalanceBotSoft")

@@ -17,8 +17,8 @@ void init_motors()
     gpio_set_function(MOTOR_B2, GPIO_FUNC_PWM);
 
     // ** pwm settings for motor driver **
-    set_motor_speed(MOTOR_A, 0, DIR_FORWARD);
-    set_motor_speed(MOTOR_B, 0, DIR_FORWARD);
+    motor_set_speed(MOTOR_A, 0, DIR_FORWARD);
+    motor_set_speed(MOTOR_B, 0, DIR_FORWARD);
     pwm_set_enabled(MOTOR_A_SLICE, true);
     pwm_set_enabled(MOTOR_B_SLICE, true);
 
@@ -28,7 +28,7 @@ void init_motors()
     quadrature_encoder_program_init(MOTOR_ENC_PIO, MOTOR_B, offset_pio, MOTOR_ENC_BA, ENC_MAX_STEPRATE);  // state machine 1
 }
 
-void set_motor_speed(Motor motor, uint16_t speed, bool direction)
+void motor_set_speed(Motor motor, uint16_t speed, bool direction)
 {
     if(motor == MOTOR_A)    // motor A
     {
@@ -53,24 +53,24 @@ void set_motor_speed(Motor motor, uint16_t speed, bool direction)
         #endif
         if (direction == DIR_FORWARD)
         {
-            pwm_set_chan_level(MOTOR_A_SLICE, MOTOR_A1_CHAN, speed);
-            pwm_set_chan_level(MOTOR_A_SLICE, MOTOR_A2_CHAN, 0);
+            pwm_set_chan_level(MOTOR_B_SLICE, MOTOR_B1_CHAN, speed);
+            pwm_set_chan_level(MOTOR_B_SLICE, MOTOR_B2_CHAN, 0);
         }
         else
         {
-            pwm_set_chan_level(MOTOR_A_SLICE, MOTOR_A1_CHAN, 0);
-            pwm_set_chan_level(MOTOR_A_SLICE, MOTOR_A2_CHAN, speed);
+            pwm_set_chan_level(MOTOR_B_SLICE, MOTOR_B1_CHAN, 0);
+            pwm_set_chan_level(MOTOR_B_SLICE, MOTOR_B2_CHAN, speed);
         }
     }
 }
 
-void request_motor_encoders()
+void motor_encoder_request()
 {
     quadrature_encoder_request_count(MOTOR_ENC_PIO, MOTOR_A); // motor A
     quadrature_encoder_request_count(MOTOR_ENC_PIO, MOTOR_B); // motor B
 }
 
-uint32_t get_motor_encoder(Motor motor)
+uint32_t motor_encoder_get(Motor motor)
 {
     return quadrature_encoder_fetch_count(MOTOR_ENC_PIO, motor);
 }

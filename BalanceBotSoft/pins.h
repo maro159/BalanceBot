@@ -53,6 +53,4 @@
 #define BATTERY_LVL_ADC 2 // adc channel 
 
 
-static void Init();
-
 #endif
