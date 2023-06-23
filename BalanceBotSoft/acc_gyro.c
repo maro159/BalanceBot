@@ -93,21 +93,21 @@ void gyro_calc_angular()
     
 }
 
-void acc_gyro_print()
-{
-    mpu6050_read_raw(acceleration, gyro, &temp);
+// void acc_gyro_print()
+// {
+//     mpu6050_read_raw(acceleration, gyro, &temp);
 
-    // These are the raw numbers from the chip, so will need tweaking to be really useful.
-    // See the datasheet for more information
-    printf("Acc. X = %d, Y = %d, Z = %d\n", acceleration[0], acceleration[1], acceleration[2]);
-    printf("Gyro. X = %d, Y = %d, Z = %d\n", gyro[0], gyro[1], gyro[2]);
-    // Temperature is simple so use the datasheet calculation to get deg C.
-    // Note this is chip temperature.
-    printf("Temp. = %f\n", (temp / 340.0) + 36.53);
-    //sleep_ms(1000); //TODO dlatego printował z mniejsza częstotliwością 
-    printf("Angle [deg]: ", acc_angle_deg);
+//     // These are the raw numbers from the chip, so will need tweaking to be really useful.
+//     // See the datasheet for more information
+//     printf("Acc. X = %d, Y = %d, Z = %d\n", acceleration[0], acceleration[1], acceleration[2]);
+//     printf("Gyro. X = %d, Y = %d, Z = %d\n", gyro[0], gyro[1], gyro[2]);
+//     // Temperature is simple so use the datasheet calculation to get deg C.
+//     // Note this is chip temperature.
+//     printf("Temp. = %f\n", (temp / 340.0) + 36.53);
+//     //sleep_ms(1000); //TODO dlatego printował z mniejsza częstotliwością 
+//     printf("Angle [deg]: ", acc_angle_deg);
 
-}
+// }
 
 /*void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) 
 {

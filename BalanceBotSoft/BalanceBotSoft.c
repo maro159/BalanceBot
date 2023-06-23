@@ -91,11 +91,40 @@ uint32_t convert_pwm(int value, bool *direction)
 int main()
 {    
     Init();
+<<<<<<< Updated upstream
     init_motors();
     const uint32_t timeout_us = 1000;
     uint8_t buf[30];
     uint32_t buf_head = 0;
     Motor motor = MOTOR_A;
+=======
+    mpu6050_init();
+    while(true)
+        {
+            // acc_gyro_print();
+        }     
+    // oled_init();
+    // current_menu = &menu_main;
+    // oled_show_menu(current_menu);
+    // oled_x(counter_en);
+    // encoder_init(0, current_menu->count);     
+    
+    
+    
+    // while(true)
+    // {         
+    //     if(encoder_changed) 
+    //     {
+    //         if(current_menu == &menu_main || current_menu == &menu_properties)
+    //         {
+    //             oled_x(counter_en);
+    //         }
+    //         else
+    //         {
+    //             // iNNE MENU
+    //         }
+    //     }
+>>>>>>> Stashed changes
 
     while(true)
     {
