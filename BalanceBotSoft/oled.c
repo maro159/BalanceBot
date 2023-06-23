@@ -1,7 +1,8 @@
 // #include <stdio.h>
 // #include <string.h>
-#include <stdlib.h>
+// #include <stdlib.h>
 // #include <ctype.h>
+#include <math.h>
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 
@@ -9,8 +10,7 @@
 #include "oled.h"
 #include "ssd1306.h"
 #include "menu.h"
-#include "oled.h"
-#include "encoder_rot.h"
+#include "font.h"
 
 ssd1306_t oled;
 
@@ -24,6 +24,7 @@ void oled_init()
     oled.external_vcc = true;
     ssd1306_clear(&oled);
     #endif
+    round(10.0);
 }
 
 void oled_show_menu(menu_t *menu)
@@ -38,17 +39,23 @@ void oled_show_menu(menu_t *menu)
 
 void oled_show_value(float value, float step)
 {
-    char *format = "";              // format for ints
-    if(step != 1.0) *format = "";   // format for floats
-    char valueString[16];  
-    sprintf(valueString, format, value);  
+    const uint32_t max_chars = 20;
+    uint32_t decimal_digits;
+    if (step >= 1.0) decimal_digits = 0; // for int-like values
+    else
+    {
+        float magnitude = log10f(fabsf(step));  // calculate number of decimal digits
+        decimal_digits = (uint32_t)ceilf(-magnitude);
+    }
+    char valueString[max_chars];
+    snprintf(valueString, max_chars, "% 1.*f", decimal_digits, value);  // convert number to string
     ssd1306_draw_string_with_font(&oled, 0, 2*FONT_HEIGHT, 1, FONT, valueString);
     ssd1306_show(&oled);
 }
 
-void oled_display_x(uint32_t y_pos)
+void oled_display_x(int32_t y_pos)
 { 
-    for (int32_t i = 0 ; i < OLED_HEIGHT/FONT_HEIGHT + 1; i++) {
+    for (int32_t i=0 ; i<OLED_HEIGHT/FONT_HEIGHT+1; i++) {
         ssd1306_draw_string_with_font(&oled, 0, i*FONT_HEIGHT, 1, FONT, " ");
     }
     ssd1306_draw_string_with_font(&oled, 0, y_pos*FONT_HEIGHT, 1, FONT, "*");    

@@ -44,12 +44,13 @@ void encoder_callback(uint gpio, uint32_t event_mask)
         else if(states == 0b1110 || states == 0b0111 || states == 0b0001 || states == 0b1000) encoder_count--;
         last_state = current_state;
 
-        #ifdef ENC_GO_AROUND
-        if(encoder_count > encoder_max) encoder_count = encoder_min;
-        if(encoder_count < encoder_min) encoder_count = encoder_max;
-        #else
+        #if ENC_GO_AROUND == 0
         if(encoder_count > encoder_max) encoder_count = encoder_max;
         if(encoder_count < encoder_min) encoder_count = encoder_min;
+        #else
+        if(encoder_count > encoder_max) encoder_count = encoder_min;
+        if(encoder_count < encoder_min) encoder_count = encoder_max;
+        
         #endif
     }
 }

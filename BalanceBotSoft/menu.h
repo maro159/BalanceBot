@@ -1,7 +1,6 @@
 #ifndef _MENU_H_
 #define _MENU_H_
 #include "pico/stdlib.h"
-#include "pico/float.h"
 
 #define MENU_SIZE(m) (sizeof(m)/sizeof(m[0]))
 

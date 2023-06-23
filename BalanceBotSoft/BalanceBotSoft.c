@@ -82,8 +82,8 @@ int main()
     oled_init();
     encoder_init();
     menu_init();
-    menu_bind_parameter(&current_velocity, menu_velocity_options);
-    menu_bind_parameter(&current_int, menu_angle_options);
+    menu_bind_parameter(&current_velocity, &menu_velocity);
+    menu_bind_parameter(&current_int, &menu_angle);
 
     while(true)
     {         
