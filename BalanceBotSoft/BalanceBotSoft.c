@@ -92,7 +92,7 @@ int main()
     mpu6050_init();
     while(true)
         {
-            acc_gyro_read();
+            acc_gyro_print();
         }     
     // oled_init();
     // current_menu = &menu_main;

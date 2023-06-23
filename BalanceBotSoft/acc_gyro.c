@@ -6,54 +6,49 @@ int16_t acceleration[3];
 int16_t gyro[3];
 int16_t temp;
 
-int16_t acc_y;
-int16_t acc_z;
-
-float acc_angle_rad;
 float acc_angle_deg;
+float gyro_angular;
 
-float gyro_angle = 0;
-float gyro_rate;
+void acc_calc_angle();
+void gyro_calc_angular();
 
-float current_time;
-float previous_time;
-float loop_time;
+// uint32_t current_time;
+// float previous_time;
+// float loop_time;
 
-const uint MPU6050_addr = 0x68;
+
 
 void mpu6050_init()
 {
     // Two byte reset. First byte register, second byte data
     // There are a load more options to set up the device in different ways that could be added here
     uint8_t buf[] = {INT_ENABLE_REG, 1};
-    i2c_write_blocking(IMU_I2C, MPU6050_addr, buf, 2, false);
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf, 2, false);
     uint8_t buf2[] = {SMPLRT_DIV_REG, 19}; // sampling frequency 
-    i2c_write_blocking(IMU_I2C, MPU6050_addr, buf2, 2, false);
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf2, 2, false);
     uint8_t buf3[] = {PWR_MGMT_1_REG, 1};
-    i2c_write_blocking(IMU_I2C, MPU6050_addr, buf3, 2, false);
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf3, 2, false);
     uint8_t buf4[] = {CONFIG_REG, 0};
-    i2c_write_blocking(IMU_I2C, MPU6050_addr, buf4, 2, false);
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf4, 2, false);
     uint8_t buf5[] = {GYRO_CONFIG, 24};
-    i2c_write_blocking(IMU_I2C, MPU6050_addr, buf5, 2, false);
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf5, 2, false);
     uint8_t buf6[] = {USER_CTRL,0x04}; //Set FIFO_RST bit to 1
-    i2c_write_blocking(i2c_default, MPU6050_addr, buf6, 2, false);
+    i2c_write_blocking(i2c_default, MPU6050_ADDR, buf6, 2, false);
 
     //TODO sprawdzić i ustawić offsety 
 
 }
 
-void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp)
+void mpu6050_read_data()
 {
-    // For this particular device, we send the device the register we want to read
-    // first, then subsequently read from the device. The register is auto incrementing
-    // so we don't need to keep sending the register we want, just the first.
-
     uint8_t buffer[6];
+    int16_t accel[3];
+    int16_t gyro[3];
 
-    // Start reading acceleration registers from register 0x3B for 6 bytes
+     // Start reading acceleration registers from register 0x3B for 6 bytes
     uint8_t val = 0x3B;
-    i2c_write_blocking(IMU_I2C, MPU6050_addr, &val, 1, true); // true to keep master control of bus
-    i2c_read_blocking(IMU_I2C, MPU6050_addr, buffer, 6, false);
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, &val, 1, true); // true to keep master control of bus
+    i2c_read_blocking(IMU_I2C, MPU6050_ADDR, buffer, 6, false);
 
     for (int i = 0; i < 3; i++)
     {
@@ -63,35 +58,42 @@ void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp)
     // Now gyro data from reg 0x43 for 6 bytes
     // The register is auto incrementing on each read
     val = 0x43;
-    i2c_write_blocking(IMU_I2C, MPU6050_addr, &val, 1, true);
-    i2c_read_blocking(IMU_I2C, MPU6050_addr, buffer, 6, false); // False - finished with bus
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, &val, 1, true);
+    i2c_read_blocking(IMU_I2C, MPU6050_ADDR, buffer, 6, false); // False - finished with bus
 
     for (int i = 0; i < 3; i++)
     {
         gyro[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);
-        ;
+        
     }
-
-    // Now temperature from reg 0x41 for 2 bytes
-    // The register is auto incrementing on each read
-    val = 0x41;
-    i2c_write_blocking(IMU_I2C, MPU6050_addr, &val, 1, true);
-    i2c_read_blocking(IMU_I2C, MPU6050_addr, buffer, 2, false); // False - finished with bus
-
-    *temp = buffer[0] << 8 | buffer[1];
-
+    
+    acc_calc_angle();
+    gyro_calc_angular();
+   
 }
 
-void acc_get_angle()
+void acc_calc_angle()
 {
-    acc_y = acceleration[1]; 
-    acc_z = acceleration[2];
+    int16_t acc_x = acceleration[0];
+    int16_t acc_y = acceleration[1];
+    int16_t acc_z = acceleration[2];
 
-    acc_angle_rad = atan2(acc_y, acc_z); 
-    acc_angle_deg = radtodeg(acc_angle_rad); //TODO sprawdzic czy napewno ta funkcja działa
+    acc_angle_deg = atan2(acc_x, acc_z) * (180/M_PI);
+
 }
 
-void acc_gyro_read()
+
+void gyro_calc_angular()
+{
+    int16_t gyro_x = gyro[0];
+    int16_t gyro_y = gyro[1];
+    int16_t gyro_z = gyro[2];
+
+    gyro_angular = gyro_y / 131;
+    
+}
+
+void acc_gyro_print()
 {
     mpu6050_read_raw(acceleration, gyro, &temp);
 
@@ -103,17 +105,51 @@ void acc_gyro_read()
     // Note this is chip temperature.
     printf("Temp. = %f\n", (temp / 340.0) + 36.53);
     //sleep_ms(1000); //TODO dlatego printował z mniejsza częstotliwością 
-    printf("Angle [rad]: ", acc_angle_rad);
     printf("Angle [deg]: ", acc_angle_deg);
 
 }
-float gyro_map(float gyro_x, float in_min, float in_max, float out_min, float out_max) //implementacja funkcji z ardu do skalowania wartości odczytanej gyro_x z pełnego zakresu MPU6050
+
+/*void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) 
 {
-    float gyro_x_rate = (gyro_x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min; 
-    return gyro_x_rate; 
-}
+    // For this particular device, we send the device the register we want to read
+    // first, then subsequently read from the device. The register is auto incrementing
+    // so we don't need to keep sending the register we want, just the first.
 
+    uint8_t buffer[6];
 
+    // Start reading acceleration registers from register 0x3B for 6 bytes
+    uint8_t val = 0x3B;
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, &val, 1, true); // true to keep master control of bus
+    i2c_read_blocking(IMU_I2C, MPU6050_ADDR, buffer, 6, false);
+
+    for (int i = 0; i < 3; i++)
+    {
+        accel[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);
+    }
+
+    // Now gyro data from reg 0x43 for 6 bytes
+    // The register is auto incrementing on each read
+    val = 0x43;
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, &val, 1, true);
+    i2c_read_blocking(IMU_I2C, MPU6050_ADDR, buffer, 6, false); // False - finished with bus
+
+    for (int i = 0; i < 3; i++)
+    {
+        gyro[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);
+        ;
+    }
+
+    // Now temperature from reg 0x41 for 2 bytes
+    // The register is auto incrementing on each read
+    val = 0x41;
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, &val, 1, true);
+    i2c_read_blocking(IMU_I2C, MPU6050_ADDR, buffer, 2, false); // False - finished with bus
+
+    *temp = buffer[0] << 8 | buffer[1];
+
+}*/
+
+/*gyro interrupt
 void gyro_timer_callback()
 {
     current_time = time_ms();
@@ -121,16 +157,8 @@ void gyro_timer_callback()
 
 void gyro_alarm()
 {
-    //stdio_init_all();
     uint16_t interval = 1000;
     add_alarm_in_ms(interval,gyro_timer_callback, NULL, false);
 }
+*/
 
-void gyro_get_angle()
-{
-    loop_time = current_time - previous_time; 
-    previous_time = current_time;
-    gyro_rate = gyro_map(gyro[0], -32768, 32767, -250, 250 ); //32768 to pełny zakres MPU, resztę dobrac.. 
-    gyro_angle = gyro_angle + gyro_rate*loop_time/1000; 
-
-}
