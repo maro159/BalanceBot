@@ -50,27 +50,26 @@ struct render_area {
 };
 
 void calc_render_area_buflen(struct render_area *area);
-
-void display_oled(char *str);
 void SSD1306_send_cmd(uint8_t cmd);
-void SSD1306_send_cmd_list(uint8_t *buf, int num);
-void SSD1306_send_buf(uint8_t buf[], int buflen);
+void SSD1306_send_cmd_list(uint8_t *buf, int32_t num);
+void SSD1306_send_buf(uint8_t buf[], int32_t buflen);
 void SSD1306_init();
 void SSD1306_scroll(bool on);
-void render(uint8_t *buf, struct render_area *area);
-static void SetPixel(uint8_t *buf, int x,int y, bool on);
-static void DrawLine(uint8_t *buf, int x0, int y0, int x1, int y1, bool on);
-static inline int GetFontIndex(uint8_t ch);
-static uint8_t reverse(uint8_t b);
-static void FillReversedCache();
-static void WriteChar(uint8_t *buf, int16_t x, int16_t y, uint8_t ch);
-static void WriteString(uint8_t *buf, int16_t x, int16_t y, char *str);
+// static void render(uint8_t *buf, struct render_area *area);
+// static void SetPixel(uint8_t *buf, int x,int y, bool on);
+// static void DrawLine(uint8_t *buf, int x0, int y0, int x1, int y1, bool on);
+// static inline int GetFontIndex(uint8_t ch);
+// static uint8_t reverse(uint8_t b);
+// static void FillReversedCache();
+// static void WriteChar(uint8_t *buf, int16_t x, int16_t y, uint8_t ch);
+// static void WriteString(uint8_t *buf, int16_t x, int16_t y, char *str);
 int oled_test();
 void oled_init();
 void oled_display_x(int y_pos);
 void oled_show_menu(menu_t *menu);
 void oled_clear();
 void oled_show_value(float value);
+inline void oled_render();
 
 
 #endif

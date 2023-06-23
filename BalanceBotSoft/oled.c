@@ -17,20 +17,22 @@ uint8_t buf[SSD1306_BUF_LEN];
 struct render_area frame_area = 
 {
     start_col: 0,
-    end_col : SSD1306_WIDTH - 1,
-    start_page : 0,
-    end_page : SSD1306_NUM_PAGES - 1
+    end_col: SSD1306_WIDTH - 1,
+    start_page: 0,
+    end_page: SSD1306_NUM_PAGES - 1
 };
 
 
-void calc_render_area_buflen(struct render_area *area) {
+void calc_render_area_buflen(struct render_area *area)
+{
     // calculate how long the flattened buffer will be for a render area
     area->buflen = (area->end_col - area->start_col + 1) * (area->end_page - area->start_page + 1);
 }
 
 #ifdef OLED_I2C
 
-void SSD1306_send_cmd(uint8_t cmd) {
+void SSD1306_send_cmd(uint8_t cmd)
+{
     // I2C write process expects a control byte followed by data
     // this "data" can be a command or data to follow up a command
     // Co = 1, D/C = 0 => the driver expects a commandoled_test
@@ -38,12 +40,14 @@ void SSD1306_send_cmd(uint8_t cmd) {
     i2c_write_blocking(OLED_I2C, (SSD1306_I2C_ADDR & SSD1306_WRITE_MODE), buf, 2, false);
 }
 
-void SSD1306_send_cmd_list(uint8_t *buf, int num) {
+void SSD1306_send_cmd_list(uint8_t *buf, int32_t num)
+{
     for (int i=0;i<num;i++)
         SSD1306_send_cmd(buf[i]);
 }
 
-void SSD1306_send_buf(uint8_t buf[], int buflen) {
+void SSD1306_send_buf(uint8_t buf[], int32_t buflen)
+{
     // in horizontal addressing mode, the column address pointer auto-increments
     // and then wraps around to the next page, so we can send the entire frame
     // buffer in one gooooooo!
@@ -61,7 +65,8 @@ void SSD1306_send_buf(uint8_t buf[], int buflen) {
     free(temp_buf);
 }
 
-void SSD1306_init() {
+void SSD1306_init() 
+{
     // Some of these commands are not strictly necessary as the reset
     // process defaults to some of these but they are shown here
     // to demonstrate what the initialization sequence looks like
@@ -110,7 +115,8 @@ void SSD1306_init() {
     SSD1306_send_cmd_list(cmds, count_of(cmds));
 }
 
-void SSD1306_scroll(bool on) {
+void SSD1306_scroll(bool on)
+{
     // configure horizontal scrolling
     uint8_t cmds[] = {
         SSD1306_SET_HORIZ_SCROLL | 0x00,
@@ -126,7 +132,8 @@ void SSD1306_scroll(bool on) {
     SSD1306_send_cmd_list(cmds, count_of(cmds));
 }
 
-void render(uint8_t *buf, struct render_area *area) {
+static void render(uint8_t *buf, struct render_area *area)
+{
     // update a portion of the display with a render area
     uint8_t cmds[] = {
         SSD1306_SET_COL_ADDR,
@@ -141,7 +148,8 @@ void render(uint8_t *buf, struct render_area *area) {
     SSD1306_send_buf(buf, area->buflen);
 }
 
-static void SetPixel(uint8_t *buf, int x,int y, bool on) {
+static void SetPixel(uint8_t *buf, int x,int y, bool on)
+{
     assert(x >= 0 && x < SSD1306_WIDTH && y >=0 && y < SSD1306_HEIGHT);
 
     // The calculation to determine the correct bit to set depends on which address
@@ -167,8 +175,8 @@ static void SetPixel(uint8_t *buf, int x,int y, bool on) {
     buf[byte_idx] = byte;
 }
 // Basic Bresenhams.
-static void DrawLine(uint8_t *buf, int x0, int y0, int x1, int y1, bool on) {
-
+static void DrawLine(uint8_t *buf, int x0, int y0, int x1, int y1, bool on)
+{
     int dx =  abs(x1-x0);
     int sx = x0<x1 ? 1 : -1;
     int dy = -abs(y1-y0);
@@ -193,7 +201,8 @@ static void DrawLine(uint8_t *buf, int x0, int y0, int x1, int y1, bool on) {
     }
 }
 
-static inline int GetFontIndex(uint8_t ch) {
+static inline int GetFontIndex(uint8_t ch)
+{
     if (ch >= 'A' && ch <='Z') {
         return  ch - 'A' + 1;
     }
@@ -205,19 +214,22 @@ static inline int GetFontIndex(uint8_t ch) {
 
 static uint8_t reversed[sizeof(font)] = {0};
 
-static uint8_t reverse(uint8_t b) {
+static uint8_t reverse(uint8_t b) 
+{
    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
    return b;
 }
-static void FillReversedCache() {
+static void FillReversedCache() 
+{
     // calculate and cache a reversed version of fhe font, because I defined it upside down...doh!
-    for (int i=0;i<sizeof(font);i++)
+    for (int32_t i=0;i<sizeof(font);i++)
         reversed[i] = reverse(font[i]);
 }
 
-static void WriteChar(uint8_t *buf, int16_t x, int16_t y, uint8_t ch) {
+static void WriteChar(uint8_t *buf, int16_t x, int16_t y, uint8_t ch)
+{
     if (reversed[0] == 0) 
         FillReversedCache();
 
@@ -236,7 +248,8 @@ static void WriteChar(uint8_t *buf, int16_t x, int16_t y, uint8_t ch) {
     }
 }
 
-static void WriteString(uint8_t *buf, int16_t x, int16_t y, char *str) {
+static void WriteString(uint8_t *buf, int16_t x, int16_t y, char *str)
+{
     // Cull out any string off the screen
     if (x > SSD1306_WIDTH - 8 || y > SSD1306_HEIGHT - 8)
         return;
@@ -249,7 +262,8 @@ static void WriteString(uint8_t *buf, int16_t x, int16_t y, char *str) {
 
 #endif
 
-int oled_test() {
+int oled_test()
+{
     
     #if !defined(OLED_I2C) || !defined(OLED_SDA) || !defined(OLED_SCL)
     #warning i2c / SSD1306_i2d example requires a board with I2C pins
@@ -358,20 +372,13 @@ void oled_init()
         puts("Default I2C pins were not defined");
     #else
  
-
     SSD1306_init();
-
     // Initialize render area for entire frame (SSD1306_WIDTH pixels by SSD1306_NUM_PAGES pages)
- 
     calc_render_area_buflen(&frame_area);
-
     // zero the entire display
-    
     memset(buf, 0, SSD1306_BUF_LEN);
+    // send to actual display
     render(buf, &frame_area);
-
-
-
     #endif
 }
 void oled_clear(){
@@ -391,8 +398,10 @@ void oled_show_menu(menu_t *menu)
     render(buf, &frame_area);    
 }
 
-void oled_show_value(float value)
+void oled_show_value(float value, float step)
 {
+    char *format = "";
+    if(step != 1.0)  
     char valueString[16];  
     sprintf(valueString, "%3f", value);  
 
@@ -410,19 +419,6 @@ void oled_display_x(int y_pos)
     WriteString(buf, 0, y_pos*8, "x");      
     render(buf, &frame_area);   
 }
-
-
-// int oled_check_counter()
-// {
-//     if(last_count != counter_en)
-//     {
-//     // printf("%d \n", counter_en);
-//     oled_x(counter_en);
-//     last_count = counter_en;
-//     }
-
-//     return last_count;
-// }
 
 inline void oled_render()
 {

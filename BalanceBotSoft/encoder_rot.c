@@ -21,10 +21,10 @@ void encoder_init()
     last_state = 0xFF;   // TODO: reduntant lines
     encoder_count = 0;
     encoder_last = 0;
-    encoder_set_limit(0, 0);
+    encoder_limit(0, 0);
 }
 
-void encoder_set_limit(int min, int max)
+void encoder_limit(int min, int max)
 {
     encoder_min = 4*min; 
     encoder_max = 4*max; // TODO: -1 czy nie

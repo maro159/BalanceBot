@@ -27,7 +27,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(BalanceBotSoft BalanceBotSoft.c oled.c encoder_rot.c acc_gyro.c menu.c )
+add_executable(BalanceBotSoft BalanceBotSoft.c oled.c encoder_rot.c acc_gyro.c menu.c ssd1306/ssd1306.c)
 
 pico_set_program_name(BalanceBotSoft "BalanceBotSoft")
 pico_set_program_version(BalanceBotSoft "0.1") 
@@ -42,6 +42,7 @@ target_link_libraries(BalanceBotSoft
 # Add the standard include files to the build
 target_include_directories(BalanceBotSoft PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/ssd1306
   ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
 )
 
