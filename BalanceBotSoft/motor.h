@@ -10,6 +10,8 @@
 #define DIR_FORWARD true
 #define DIR_REVERSE false
 
+#define MOTOR_ENCODER_TICKS 960 // encoder ticks for 1 rotate
+
 typedef enum Motor
 {
     MOTOR_A = 0,
@@ -18,10 +20,12 @@ typedef enum Motor
 
 void init_motors();
 void init_servo();
-void set_servo_position();
-void motor_set_speed(Motor motor, uint16_t speed, bool direction);
+void servo_set_position();
+// void motor_set_speed(Motor motor, uint16_t speed, bool direction);
+void motor_set_speed(Motor motor, float speed);
+void motor_limit();
 void motor_encoder_request();
-uint32_t motor_encoder_get(Motor motor);
+int32_t motor_encoder_get(Motor motor);
 
 
 #endif
