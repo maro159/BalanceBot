@@ -59,7 +59,7 @@ typedef enum {
 /**
 *	@brief holds the configuration
 */
-typedef struct {
+typedef struct ssd1306_t{
     uint8_t width; 		/**< width of display */
     uint8_t height; 	/**< height of display */
     uint8_t pages;		/**< stores pages of display (calculated on initialization*/

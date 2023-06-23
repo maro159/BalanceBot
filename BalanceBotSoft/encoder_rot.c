@@ -24,7 +24,7 @@ void encoder_init()
     encoder_limit(0, 0);
 }
 
-void encoder_limit(int min, int max)
+void encoder_limit(int32_t min, int32_t max)
 {
     encoder_min = 4*min; 
     encoder_max = 4*max; // TODO: -1 czy nie
@@ -76,14 +76,14 @@ bool encoder_clicked()
     else return false;
 }
 
-int encoder_get()
+int32_t encoder_get()
 {
     return encoder_count/4;
 }
 
-void encoder_set(int value)
+void encoder_set(int32_t value)
 {
-    encoder_count = value;  // TODO: check limits
+    encoder_count = 4*value;  // TODO: check if within limits   
 }
 
 

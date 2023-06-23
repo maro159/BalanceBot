@@ -46,6 +46,8 @@
         "variant": "c",
         "chrono": "c",
         "random": "c",
-        "limits": "c"
+        "limits": "c",
+        "ssd1306_font.h": "c",
+        "font.h": "c"
     }
 }

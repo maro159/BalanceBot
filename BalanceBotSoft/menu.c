@@ -72,7 +72,7 @@ int32_t menu_execute()
             else if (current_menu->menu_type == MENU_OPTION )
             {   
                 new_param = initial_param + (encoder_get()) * current_menu->limits.step;
-                oled_show_value(new_param);
+                oled_show_value(new_param, current_menu->limits.max);
             }
         }
 
@@ -105,14 +105,14 @@ int32_t menu_execute()
             else if(nextMenu->menu_type == MENU_OPTION)
             {
                 initial_param = (*(float*)(nextMenu->options[0].ptr));    // get initial value of parameter
-                int enc_min = roundf(-abs((initial_param - nextMenu->limits.min)/(nextMenu->limits.step))); // calc limit for encoder
-                int enc_max = roundf(abs((initial_param - nextMenu->limits.max)/(nextMenu->limits.step)));
+                int32_t enc_min = roundf(-abs((initial_param - nextMenu->limits.min)/(nextMenu->limits.step))); // calc limit for encoder
+                int32_t enc_max = roundf(abs((initial_param - nextMenu->limits.max)/(nextMenu->limits.step)));
                 #ifdef DEBUG_MODE
                 printf("enc min: %d\t enc max: %d\n", enc_min, enc_max);
                 #endif
                 encoder_limit(enc_min, enc_max);    // TODO: check if currentValue > min && currentValue < max
                 encoder_set(0);
-                oled_show_value(initial_param);
+                oled_show_value(new_param, current_menu->limits.max);
             }
             else {}
             current_menu = nextMenu;
