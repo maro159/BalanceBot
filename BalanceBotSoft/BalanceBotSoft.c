@@ -1,3 +1,5 @@
+#include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +15,10 @@
 #include "hardware/adc.h"
 #include "pins.h"
 #include "motor.h"
+#include "oled.h"
+#include "encoder_rot.h"
+#include "menu.h"
+#include "acc_gyro.h"
 
 
 static int addr = 0x68;
@@ -35,7 +41,7 @@ static void Init()
     gpio_set_function(MOTOR_B2, GPIO_FUNC_PWM);
 
     gpio_set_function(SERWO, GPIO_FUNC_PWM);
-       
+
     // uart_init(BT_UART, BT_BAUDRATE);
     stdio_uart_init_full(BT_UART, BT_BAUDRATE, BT_TX, BT_RX);
     // stdio_init_all();
@@ -83,8 +89,7 @@ uint32_t convert_pwm(int value, bool *direction)
 }
 
 int main()
-{
-
+{    
     Init();
     init_motors();
     const uint32_t timeout_us = 1000;

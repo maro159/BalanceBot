@@ -27,6 +27,7 @@
         "stdlib.h": "c",
         "stdio_uart.h": "c",
         "stdio.h": "c",
-        "*.s": "c"
+        "*.s": "c",
+        "adc.h": "c"
     }
 }
