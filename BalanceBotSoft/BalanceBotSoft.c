@@ -89,10 +89,10 @@ bool return_to_main_loop = false;
 int main()
 {    
     Init();
-    mpu6050_reset();
+    mpu6050_init();
     while(true)
         {
-            // acc_gyro_read();
+            acc_gyro_read();
         }     
     // oled_init();
     // current_menu = &menu_main;
