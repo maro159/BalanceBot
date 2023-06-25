@@ -32,8 +32,13 @@ void mpu6050_init()
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf4, 2, false);
     uint8_t buf5[] = {GYRO_CONFIG, 24};
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf5, 2, false);
-    uint8_t buf6[] = {USER_CTRL,0x04}; //Set FIFO_RST bit to 1
-    i2c_write_blocking(i2c_default, MPU6050_ADDR, buf6, 2, false);
+    //reset FIFO 
+    uint8_t buf6[] = {USER_CTRL,0x44}; 
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf6, 2, false);
+    sleep_ms(20); //można zmienić jak będzie za dużo/za mało, fifo usuwa dane w kilka ms 
+    uint8_t buf7[] = {USER_CTRL,0x40}; 
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf7, 2, false);
+
 
     //TODO sprawdzić i ustawić offsety 
 
@@ -93,6 +98,9 @@ void gyro_calc_angular()
     
 }
 
+
+
+/*
 // void acc_gyro_print()
 // {
 //     mpu6050_read_raw(acceleration, gyro, &temp);
@@ -147,18 +155,8 @@ void gyro_calc_angular()
 
     *temp = buffer[0] << 8 | buffer[1];
 
-}*/
-
-/*gyro interrupt
-void gyro_timer_callback()
-{
-    current_time = time_ms();
-}
-
-void gyro_alarm()
-{
-    uint16_t interval = 1000;
-    add_alarm_in_ms(interval,gyro_timer_callback, NULL, false);
 }
 */
+
+
 

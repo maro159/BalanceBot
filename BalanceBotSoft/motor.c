@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+
 #include "pico/stdlib.h"
 
 #include "motor.h"
@@ -8,6 +11,7 @@
 #include "hardware/pio.h"
 #include "hardware/pwm.h"
 
+uint32_t motor_power_ratio;
 
 void _set_pwm(Motor motor, uint16_t pwm, bool direction)
 {
@@ -74,4 +78,30 @@ void motor_encoder_request()
 int32_t motor_encoder_get(Motor motor)
 {
     return quadrature_encoder_fetch_count(MOTOR_ENC_PIO, motor);    // TODO: divide by 4 or not
+}
+
+void motor_limit(uint32_t motor_ratio)
+{
+    if(motor_ratio > 100)
+    {
+        motor_ratio = 100; 
+    }
+ 
+    motor_power_ratio = motor_ratio; 
+        
+   
+}
+
+void motor_set_power(Motor motor, float power)
+{
+    bool dir; 
+    if(power >= 0) dir = DIR_FORWARD;
+    else dir = DIR_REVERSE; 
+
+    power = abs(power); 
+    if (power > 1) power = 1;
+    uint16_t pwm = (uint16_t)((power) * motor_power_ratio / 32767); 
+   
+    _set_pwm(motor, pwm, dir); 
+
 }

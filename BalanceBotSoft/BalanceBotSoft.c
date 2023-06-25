@@ -19,11 +19,20 @@
 #include "encoder_rot.h"
 #include "menu.h"
 #include "acc_gyro.h"
+#include "controler.h"
 
+volatile bool time_to_go; 
 
 static int addr = 0x68;
 
-static void Init()
+uint32_t last_time_us;
+
+const uint32_t sampling_time_us = 20 * 1000;
+float sampling_time_sec = sampling_time_us / (1000 * 1000);
+
+repeating_timer_t controler_timer;
+
+static void init()
 {
     i2c_init(IMU_I2C, IMU_BAUDRATE);  
     gpio_set_function(IMU_SDA, GPIO_FUNC_I2C);
@@ -78,7 +87,7 @@ static void Init()
 
 }
 
-uint32_t convert_pwm(int value, bool *direction)
+/*uint32_t convert_pwm(int value, bool *direction)
 {
     *direction = DIR_FORWARD;
     if(value < 0) *direction = DIR_REVERSE;
@@ -87,55 +96,93 @@ uint32_t convert_pwm(int value, bool *direction)
     if (value > 65535) value = 65535;
     return value;
 }
+*/
 
-int main()
-{    
-    Init();
-    init_motors();
-    const uint32_t timeout_us = 1000;
-    uint8_t buf[30];
-    uint32_t buf_head = 0;
-    Motor motor = MOTOR_A;
+bool controler_timer_callback()
+{
+    // current_time = time_ms();
+    time_to_go = true; 
+    return true; //to continue repeating 
+}
+
+void controler_timer_set ()
+{
+    uint32_t interval_ms = sampling_time_us / 1000;
+    add_repeating_timer_ms(interval_ms,&controler_timer_callback, NULL, &controler_timer);
+}
+
+
+int main() 
+{
+    init();
 
     while(true)
     {
-        int c = getchar_timeout_us(timeout_us);	
-        if (c != PICO_ERROR_TIMEOUT)
+        if(time_to_go)// && current_menu == RUN
         {
-            buf[buf_head++] = c;
-            if (c == 0x0D)
-            {
-                
-                // Convert the uint8_t array to a string
-                char str[buf_head];
-                strncpy(str, (char*)buf, buf_head);
-                str[buf_head] = '\0';
-                printf(str);
-                // Convert the string to an integer
-                int value = atoi(str);
-                printf("Converted: %d", value);
-                bool direction = DIR_FORWARD;
-                uint32_t pwm = convert_pwm(value, &direction);
-                printf("Value: %d, direction: %d", pwm, direction);
-                // motor_set_speed(motor, pwm, direction);
-                buf_head = 0;
-            }
-            else if (c == 'A')
-            {
-                motor = MOTOR_A;
-                printf("Motor A\n");
-                buf_head=0;
-            }
-            else if (c == 'B')
-            {
-                motor = MOTOR_B;
-                printf("Motor B\n");
-                buf_head=0;
-            }
+            uint32_t current_time_us = time_us_32();
+            uint32_t dt_us = current_time_us - last_time_us;
+            last_time_us = current_time_us; 
+            
+            controler_update();
+            time_to_go = false;
         }
-        
+
     }
     
 
-    return 0;
+    
+    
 }
+
+// int main()
+// {    
+//     Init();
+//     init_motors();
+//     const uint32_t timeout_us = 1000;
+//     uint8_t buf[30];
+//     uint32_t buf_head = 0;
+//     Motor motor = MOTOR_A;
+
+//     while(true)
+//     {
+//         int c = getchar_timeout_us(timeout_us);	
+//         if (c != PICO_ERROR_TIMEOUT)
+//         {
+//             buf[buf_head++] = c;
+//             if (c == 0x0D)
+//             {
+                
+//                 // Convert the uint8_t array to a string
+//                 char str[buf_head];
+//                 strncpy(str, (char*)buf, buf_head);
+//                 str[buf_head] = '\0';
+//                 printf(str);
+//                 // Convert the string to an integer
+//                 int value = atoi(str);
+//                 printf("Converted: %d", value);
+//                 bool direction = DIR_FORWARD;
+//                 uint32_t pwm = convert_pwm(value, &direction);
+//                 printf("Value: %d, direction: %d", pwm, direction);
+//                 // motor_set_speed(motor, pwm, direction);
+//                 buf_head = 0;
+//             }
+//             else if (c == 'A')
+//             {
+//                 motor = MOTOR_A;
+//                 printf("Motor A\n");
+//                 buf_head=0;
+//             }
+//             else if (c == 'B')
+//             {
+//                 motor = MOTOR_B;
+//                 printf("Motor B\n");
+//                 buf_head=0;
+//             }
+//         }
+        
+//     }
+    
+
+//     return 0;
+// }
