@@ -31,6 +31,7 @@ typedef struct menu_t
     limit_t limits;
 } menu_t;
 
+extern menu_t menu_run;
 extern menu_t menu_main;
 extern menu_t menu_settings;
 extern menu_t menu_pids;

@@ -17,9 +17,8 @@ static float new_param;
 option_t menu_main_options[] =
 {
     {"** MAIN MENU **", &menu_main},
-    {"RUN", &menu_settings},
+    {"RUN", &menu_run},
     {"SETTINGS", &menu_settings},
-    {"EXIT", NULL},
 };
 option_t menu_settings_options[] =
 {
@@ -35,7 +34,7 @@ option_t menu_pids_options[] =
     {"PID - speed", &menu_pid_speed},
     {"PID - imu", &menu_pid_imu},
     {"PID - motor", &menu_pid_motor},
-    {"EXIT", &menu_main},
+    {"EXIT", &menu_settings},
 };
 option_t menu_pid_speed_options[] =
 {
@@ -139,7 +138,7 @@ menu_t menu_pid_motor_kp = {MENU_PARAM, menu_pid_motor_kp_options, {-10, 10, 0.1
 menu_t menu_pid_motor_ki = {MENU_PARAM, menu_pid_motor_ki_options, {-1, 1, 0.01}};
 menu_t menu_pid_motor_kd = {MENU_PARAM, menu_pid_motor_kd_options, {-10, 10, 0.1}};
 
-menu_t menu_motor_power = {MENU_PARAM, menu_pid_motor_options, {0, 100, 1}};
+menu_t menu_motor_power = {MENU_PARAM, menu_pid_motor_options, {0, 1, 0.01}};
 menu_t menu_max_angle = {MENU_PARAM, menu_pid_motor_options, {0, 90, 1}};
 
 void menu_init()
