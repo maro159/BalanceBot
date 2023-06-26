@@ -17,21 +17,21 @@ pid_limits(pid_ctrl pid, float min, float max); -> to beda wartosci "z palca", a
 */
 
 
-float current_robot_speed = 0.0;
-float target_robot_speed = 0.0; // to remote control
+static float current_robot_speed = 0.0;
+static float target_robot_speed = 0.0; // to remote control
 
-float target_angle = 0.0;
+static float target_angle = 0.0;
 
-float current_angle = 0.0;
-float target_motors_speed = 0.0;   
+static float current_angle = 0.0;
+static float target_motors_speed = 0.0;   
 
-float current_motor_a_speed = 0.0;
-float target_motor_a_speed = 0.0;
-float motor_a_power = 0.0;                
+static float current_motor_a_speed = 0.0;
+static float target_motor_a_speed = 0.0;
+static float motor_a_power = 0.0;                
 
-float current_motor_b_speed = 0.0;
-float target_motor_b_speed = 0.0;
-float motor_b_power = 0.0;   
+static float current_motor_b_speed = 0.0;
+static float target_motor_b_speed = 0.0;
+static float motor_b_power = 0.0;   
 
 pid_ctrl pid_speed;
 pid_ctrl pid_imu;

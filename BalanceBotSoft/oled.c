@@ -13,7 +13,7 @@
 #include "font.h"
 #include "logo.h"
 
-ssd1306_t oled;
+static ssd1306_t oled;
 
 void init_oled()
 {

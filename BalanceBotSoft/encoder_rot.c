@@ -3,12 +3,12 @@
 #include "encoder_rot.h"
 #include "pins.h"
 
-volatile bool status_SW = false;
-volatile uint32_t last_state = 0xFFFFFFFF;
-volatile int32_t encoder_count = 0;  // multiplied by 4
-int32_t encoder_last = 0;  // multiplied by 4
-int32_t encoder_min = 0; // multiplied by 4
-int32_t encoder_max = 0; // multiplied by 4
+static volatile bool status_SW = false;
+static volatile uint32_t last_state = 0xFFFFFFFF;
+static volatile int32_t encoder_count = 0;  // multiplied by 4
+static int32_t encoder_last = 0;  // multiplied by 4
+static int32_t encoder_min = 0; // multiplied by 4
+static int32_t encoder_max = 0; // multiplied by 4
 
 
 void init_encoder() 

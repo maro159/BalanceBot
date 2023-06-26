@@ -22,9 +22,6 @@
 #include "controler.h"
 
 volatile bool time_to_go = false; 
-bool is_run = false;
-bool was_run = false;
-static int addr = 0x68;
 
 uint32_t last_time_us = 0;
 
@@ -97,7 +94,7 @@ static void init()
 }
 */
 
-bool controler_timer_callback()
+bool controler_timer_callback(repeating_timer_t *t)
 {
     // current_time = time_ms();
     time_to_go = true; 
@@ -106,13 +103,18 @@ bool controler_timer_callback()
 
 void controler_timer_set()
 {
-    uint32_t interval_ms = sampling_time_us / 1000;
-    add_repeating_timer_ms(interval_ms,&controler_timer_callback, NULL, &controler_timer);
+    // Negative delay so means we will call repeating_timer_callback, and call it again 
+    // regardless of how long the callback took to execute
+    add_repeating_timer_us(-sampling_time_us,&controler_timer_callback, NULL, &controler_timer);
+    last_time_us = time_us_32();
 }
 
 
 int main() 
 {
+    bool is_run = false;
+    bool was_run = false;
+
     init();
     init_motors();
     // init_servo();
@@ -134,13 +136,12 @@ int main()
             controler_update();
             time_to_go = false;
         }
-        
+
         is_run = menu_execute(); // indicates if we are in run menu
         if(!was_run && is_run) controler_run();
         else if(was_run && !is_run) controler_stop();
         was_run = is_run;
     }
-    
 }
 
 /*
