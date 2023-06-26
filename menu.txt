@@ -1,0 +1,24 @@
+*MAIN MENU*
+	RUN
+	SETTINGS
+		PIDS
+			PID SPEED
+				SPEED KP []
+				SPEED KI []
+				SPEED KD []
+				EXIT
+			PID ANGLE
+				ANGLE KP []
+				ANGLE KI []
+				ANGLE KD []
+				EXIT
+			PID MOTOR
+				MOTOR KP []
+				MOTOR KI []
+				MOTOR KD []
+				EXIT
+		MOTOR POWER
+			MOTOR A POWER [0,100,1]
+			MOTOR B POWER [0,100,1]
+		MAX ANGLE [0,90,1]
+		EXIT

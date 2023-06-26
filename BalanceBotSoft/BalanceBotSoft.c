@@ -83,8 +83,6 @@ static void init()
     gpio_set_dir(ENC_ROT_A, false);
     gpio_set_dir(ENC_ROT_B, false);
     gpio_set_dir(ENC_ROT_SW, false);
-    
-
 }
 
 /*uint32_t convert_pwm(int value, bool *direction)

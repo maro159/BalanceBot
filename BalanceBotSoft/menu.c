@@ -1,47 +1,214 @@
+#include <stdio.h>
+// #include <string.h>
+#include <stdlib.h>
+#include <math.h>
+// #include <ctype.h>
+#include "pico/stdlib.h"
+#include "pins.h"
 #include "menu.h"
 #include "oled.h"
 #include "encoder_rot.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include "pico/stdlib.h"
-#include "pico/binary_info.h"
-#include "hardware/i2c.h"
-#include "raspberry26x32.h"
-#include "ssd1306_font.h"
-#include "pins.h"
-#include "encoder_rot.h"
 
+static menu_t *current_menu; // TODO: is static ok?
+static float initial_param;
+static float new_param;
 
+/* NORMAL MENU OPTIONS */
 option_t menu_main_options[] =
 {
-    {"RUN", &menu_properties},
-    {"PROPERTIES", &menu_properties},
-    {"EXIT", NULL},
+    {"** MAIN MENU **", &menu_main},
+    {"RUN", &menu_run},
+    {"SETTINGS", &menu_settings},
 };
-
-option_t menu_properties_options[] =
+option_t menu_settings_options[] =
 {
-    {"VELOCITY", &menu_properties},
-    {"ANGLE", &menu_properties},
+    {"** SETTINGS **", &menu_settings},
+    {"PIDs", &menu_pids},
+    {"motor power", &menu_motor_power},
+    {"max angle", &menu_max_angle},
     {"EXIT", &menu_main},
 };
-
-menu_t menu_main = {menu_main_options, sizeof(menu_main_options) / sizeof(menu_main_options[0])};
-menu_t menu_properties = {menu_properties_options, sizeof(menu_properties_options) / sizeof(menu_properties_options[0])};
-
-int set_v(set_t *current_values)
+option_t menu_pids_options[] =
 {
-    int value = 0; 
-    value = counter_en * current_values->step;
-    if(value < current_values->min)
-    {
-        value = current_values->min;
-    }
-    else if(value > current_values->max)
-    {
-        value = current_values->max;
-    }
-    return value;
+    {"** PIDs **", &menu_pids},
+    {"PID - speed", &menu_pid_speed},
+    {"PID - imu", &menu_pid_imu},
+    {"PID - motor", &menu_pid_motor},
+    {"EXIT", &menu_settings},
+};
+option_t menu_pid_speed_options[] =
+{
+    {"** PID - speed **", &menu_pid_speed},
+    {"speed kp", &menu_pid_speed_kp},
+    {"speed ki", &menu_pid_speed_ki},
+    {"speed kd", &menu_pid_speed_kd},
+    {"EXIT", &menu_pids},
+};
+option_t menu_pid_imu_options[] =
+{
+    {"** PID - imu **", &menu_pid_imu},
+    {"imu kp", &menu_pid_imu_kp},
+    {"imu ki", &menu_pid_imu_ki},
+    {"imu kd", &menu_pid_imu_kd},
+    {"EXIT", &menu_pids},
+};
+option_t menu_pid_motor_options[] =
+{
+    {"** PID - motor **", &menu_pid_motor},
+    {"motor kp", &menu_pid_motor_kp},
+    {"motor ki", &menu_pid_motor_ki},
+    {"motor kd", &menu_pid_motor_kd},
+    {"EXIT", &menu_pids},
+};
+
+/* PARAM MENU OPTIONS */
+option_t menu_pid_speed_kp_options[] =
+{
+    {"speed kp", NULL}, // pointer to parameter to be changed
+    {"", &menu_pid_speed}, // pointer to upper level menu
+};
+option_t menu_pid_speed_ki_options[] =
+{
+    {"speed ki", NULL},
+    {"", &menu_pid_speed},
+};
+option_t menu_pid_speed_kd_options[] =
+{
+    {"speed kd", NULL},
+    {"", &menu_pid_speed},
+};
+option_t menu_pid_imu_kp_options[] =
+{
+    {"imu kp", NULL},
+    {"", &menu_pid_imu},
+};
+option_t menu_pid_imu_ki_options[] =
+{
+    {"imu ki", NULL},
+    {"", &menu_pid_imu},
+};
+option_t menu_pid_imu_kd_options[] =
+{
+    {"imu kd", NULL},
+    {"", &menu_pid_imu},
+};
+option_t menu_pid_motor_kp_options[] =
+{
+    {"motor kp", NULL},
+    {"", &menu_pid_motor},
+};
+option_t menu_pid_motor_ki_options[] =
+{
+    {"motor ki", NULL},
+    {"", &menu_pid_motor},
+};
+option_t menu_pid_motor_kd_options[] =
+{
+    {"motor kd", NULL},
+    {"", &menu_pid_motor},
+};
+
+option_t menu_motor_power_options[] =
+{
+    {"motor power", NULL},
+    {"", &menu_settings},
+};
+option_t menu_max_angle_options[] =
+{
+    {"max angle", NULL},
+    {"", &menu_settings},
+};
+
+menu_t menu_main =  {MENU_NORMAL, menu_main_options, {1, MENU_SIZE(menu_main_options)-1, 1}};
+menu_t menu_settings = {MENU_NORMAL, menu_settings_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
+menu_t menu_pids = {MENU_NORMAL, menu_pids_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
+menu_t menu_pid_speed = {MENU_NORMAL, menu_pid_speed_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
+menu_t menu_pid_imu = {MENU_NORMAL, menu_pid_imu_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
+menu_t menu_pid_motor = {MENU_NORMAL, menu_pid_motor_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
+
+menu_t menu_pid_speed_kp = {MENU_PARAM, menu_pid_speed_kp_options, {-10, 10, 0.1}};
+menu_t menu_pid_speed_ki = {MENU_PARAM, menu_pid_speed_ki_options, {-1, 1, 0.01}};
+menu_t menu_pid_speed_kd = {MENU_PARAM, menu_pid_speed_kd_options, {-10, 10, 0.1}};
+
+menu_t menu_pid_imu_kp = {MENU_PARAM, menu_pid_imu_kp_options, {-10, 10, 0.1}};
+menu_t menu_pid_imu_ki = {MENU_PARAM, menu_pid_imu_ki_options, {-1, 1, 0.01}};
+menu_t menu_pid_imu_kd = {MENU_PARAM, menu_pid_imu_kd_options, {-10, 10, 0.1}};
+
+menu_t menu_pid_motor_kp = {MENU_PARAM, menu_pid_motor_kp_options, {-10, 10, 0.1}};
+menu_t menu_pid_motor_ki = {MENU_PARAM, menu_pid_motor_ki_options, {-1, 1, 0.01}};
+menu_t menu_pid_motor_kd = {MENU_PARAM, menu_pid_motor_kd_options, {-10, 10, 0.1}};
+
+menu_t menu_motor_power = {MENU_PARAM, menu_pid_motor_options, {0, 1, 0.01}};
+menu_t menu_max_angle = {MENU_PARAM, menu_pid_motor_options, {0, 90, 1}};
+
+void menu_init()
+{
+    current_menu = &menu_main;
+    encoder_limit(current_menu->limits.min, current_menu->limits.max);
+    oled_show_menu(current_menu);
+    oled_display_x(0);
+}
+
+void menu_bind_parameter(void *param, menu_t *menu)
+{
+    menu->options[0].ptr = param;
+}
+
+int32_t menu_execute()
+{
+    if(encoder_changed()) 
+        {
+            if(current_menu->menu_type == MENU_NORMAL)
+            {
+                oled_display_x(encoder_get());
+            }
+            else if (current_menu->menu_type == MENU_PARAM )
+            {   
+                new_param = initial_param + (encoder_get()) * current_menu->limits.step;
+                oled_show_value(new_param, current_menu->limits.max);
+            }
+        }
+
+        if(encoder_clicked())
+        {
+            menu_t *nextMenu;
+            if(current_menu->menu_type == MENU_NORMAL)
+            {
+                nextMenu = current_menu->options[encoder_get()].ptr; // choose menu based on encoder selection
+            }
+            else if(current_menu->menu_type == MENU_PARAM)
+            {
+                nextMenu = current_menu->options[1].ptr;            // pointer to higher level menu
+                (*(float*)(current_menu->options[0].ptr)) = new_param;    // save value of parameter
+                #ifdef DEBUG_MODE
+                printf("saved: %3f\n", new_param);    // TODO: temporary
+                #endif
+            }
+            if(nextMenu == NULL) {oled_clear(); return 1;} // EXIT )
+            
+            oled_clear();
+            oled_show_menu(nextMenu);
+
+            if(nextMenu->menu_type == MENU_NORMAL)
+            {
+                encoder_limit(nextMenu->limits.min, nextMenu->limits.max);
+                encoder_set(nextMenu->limits.min);  // to allow blocked menu options
+                oled_display_x(nextMenu->limits.min); // TODO: move it to better place
+            }
+            else if(nextMenu->menu_type == MENU_PARAM)
+            {
+                initial_param = (*(float*)(nextMenu->options[0].ptr));    // get initial value of parameter
+                int32_t enc_min = roundf(-abs((initial_param - nextMenu->limits.min)/(nextMenu->limits.step))); // calc limit for encoder
+                int32_t enc_max = roundf(abs((initial_param - nextMenu->limits.max)/(nextMenu->limits.step)));
+                #ifdef DEBUG_MODE
+                printf("enc min: %d\t enc max: %d\n", enc_min, enc_max);
+                #endif
+                encoder_limit(enc_min, enc_max);    // TODO: check if currentValue > min && currentValue < max
+                encoder_set(0);
+                oled_show_value(new_param, current_menu->limits.max);
+            }
+            else {}
+            current_menu = nextMenu;
+        }
+        return 0;
 }
