@@ -54,8 +54,8 @@ extern menu_t menu_pid_motor_kd;
 extern menu_t menu_motor_power;
 extern menu_t menu_max_angle;
 
-void menu_init();
+void init_menu();
 void menu_bind_parameter(void *param, menu_t *menu);
-int32_t menu_execute();
+bool menu_execute();
 
 #endif

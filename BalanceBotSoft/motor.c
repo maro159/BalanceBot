@@ -11,7 +11,7 @@
 #include "hardware/pio.h"
 #include "hardware/pwm.h"
 
-uint32_t motor_power_ratio;
+float motor_power_ratio = 1;
 
 void _set_pwm(Motor motor, uint16_t pwm, bool direction)
 {
@@ -51,11 +51,11 @@ void _set_pwm(Motor motor, uint16_t pwm, bool direction)
 
 void init_motors()
 {
-    // ** motor driver outputs **
-    gpio_set_function(MOTOR_A1, GPIO_FUNC_PWM);
-    gpio_set_function(MOTOR_A2, GPIO_FUNC_PWM);
-    gpio_set_function(MOTOR_B1, GPIO_FUNC_PWM);
-    gpio_set_function(MOTOR_B2, GPIO_FUNC_PWM);
+    // // ** motor driver outputs **
+    // gpio_set_function(MOTOR_A1, GPIO_FUNC_PWM);
+    // gpio_set_function(MOTOR_A2, GPIO_FUNC_PWM);
+    // gpio_set_function(MOTOR_B1, GPIO_FUNC_PWM);
+    // gpio_set_function(MOTOR_B2, GPIO_FUNC_PWM);
 
     // ** pwm settings for motor driver **
     _set_pwm(MOTOR_A, 0, DIR_FORWARD);
@@ -80,16 +80,10 @@ int32_t motor_encoder_get(Motor motor)
     return quadrature_encoder_fetch_count(MOTOR_ENC_PIO, motor);    // TODO: divide by 4 or not
 }
 
-void motor_limit(uint32_t motor_ratio)
+void motor_limit(float motor_ratio)
 {
-    if(motor_ratio > 100)
-    {
-        motor_ratio = 100; 
-    }
- 
+    if(motor_ratio > 1) motor_ratio = 1; 
     motor_power_ratio = motor_ratio; 
-        
-   
 }
 
 void motor_set_power(Motor motor, float power)

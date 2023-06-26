@@ -18,12 +18,14 @@ typedef enum Motor
     MOTOR_B = 1,
 } Motor;
 
+extern float motor_power_ratio;
+
 void init_motors();
 void init_servo();
 void servo_set_position();
 // void motor_set_speed(Motor motor, uint16_t speed, bool direction);
 void motor_set_power(Motor motor, float power);
-void motor_limit(uint32_t motor_ratio);
+void motor_limit(float motor_ratio);
 void motor_encoder_request();
 int32_t motor_encoder_get(Motor motor);
 

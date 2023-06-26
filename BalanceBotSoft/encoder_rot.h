@@ -9,7 +9,7 @@
 // extern int32_t encoder_min;
 // extern int32_t encoder_max;
 
-void encoder_init();
+void init_encoder();
 void encoder_limit(int32_t min, int32_t max);
 void encoder_callback(uint gpio, uint32_t event_mask);
 bool encoder_changed(); 

@@ -18,7 +18,7 @@ void gyro_calc_angular();
 
 
 
-void mpu6050_init()
+void init_acc_gyro()
 {
     // Two byte reset. First byte register, second byte data
     // There are a load more options to set up the device in different ways that could be added here

@@ -11,10 +11,11 @@
 #include "ssd1306.h"
 #include "menu.h"
 #include "font.h"
+#include "logo.h"
 
 ssd1306_t oled;
 
-void oled_init()
+void init_oled()
 {
     #if !defined(OLED_I2C) || !defined(OLED_SDA) || !defined(OLED_SCL)
     #warning i2c / SSD1306_i2d example requires a board with I2C pins
@@ -24,7 +25,6 @@ void oled_init()
     oled.external_vcc = true;
     ssd1306_clear(&oled);
     #endif
-    round(10.0);
 }
 
 void oled_show_menu(menu_t *menu)
@@ -65,4 +65,10 @@ void oled_display_x(int32_t y_pos)
 void oled_clear()
 {
     ssd1306_clear(&oled);
+}
+
+void oled_show_logo()
+{
+    ssd1306_bmp_show_image(&oled, logo_bmp_data, logo_bmp_size);
+    ssd1306_show(&oled);  
 }

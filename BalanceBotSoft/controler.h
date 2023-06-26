@@ -8,6 +8,8 @@ extern pid_ctrl pid_imu;
 extern pid_ctrl pid_motor_a;
 extern pid_ctrl pid_motor_b;
 
-void controler_init();
+void init_controler();
 void controler_update();
+void controler_stop();
+void controler_run();
 #endif

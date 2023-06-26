@@ -11,7 +11,7 @@ int32_t encoder_min = 0; // multiplied by 4
 int32_t encoder_max = 0; // multiplied by 4
 
 
-void encoder_init() 
+void init_encoder() 
 {
     gpio_set_irq_enabled(ENC_ROT_A, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true);
     gpio_set_irq_enabled(ENC_ROT_B, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true);

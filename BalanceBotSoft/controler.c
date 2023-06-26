@@ -6,7 +6,7 @@
 #include "motor.h"
 
 /*
-w funkcji controler_init()
+w funkcji init_controler()
 dodac zmienna const sampling_time_us
 
 wywolac dla kazdego pid_t (nie zapisywac nigdzie tego co zwraca funkcja)
@@ -17,8 +17,8 @@ pid_limits(pid_ctrl pid, float min, float max); -> to beda wartosci "z palca", a
 */
 
 
-float current_robot_speed = 0.0;    
-float target_robot_speed = 0.0;
+float current_robot_speed = 0.0;
+float target_robot_speed = 0.0; // to remote control
 
 float target_angle = 0.0;
 
@@ -44,7 +44,7 @@ int32_t motor_a_enc_last = 0;
 int32_t motor_b_enc_last = 0; 
 
 
-void controler_init()
+void init_controler()
 {   
     float kp_speed = 0.0;
     float ki_speed = 0.0;
@@ -62,7 +62,6 @@ void controler_init()
     float ki_motor_b = 0.0;
     float kd_motor_b = 0.0;
 
-    
     pid_create(pid_speed, &current_robot_speed, &target_angle, &target_robot_speed, kp_speed, ki_speed, kd_speed); 
     pid_create(pid_imu, &current_angle, &target_motor_a_speed, &target_angle, kp_imu, ki_imu, kd_imu);
     pid_create(pid_motor_a,&current_motor_a_speed,&motor_a_power,&target_motor_a_speed, kp_motor_a, ki_motor_a, kd_motor_a);
@@ -77,7 +76,6 @@ void controler_init()
     pid_limits(pid_imu, -120, 120);
     pid_limits(pid_motor_a, -1, 1);
     pid_limits(pid_motor_b, -1, 1);
-
 }
 
 /*dane potrzebne do pid_create()
@@ -103,11 +101,17 @@ void refresh_data()
     motor_encoder_request();
     mpu6050_read_data();
     
-    current_motor_a_speed = (motor_encoder_get(MOTOR_A) - motor_a_enc_last) / (MOTOR_ENCODER_TICKS * sampling_time_sec);
-    current_motor_b_speed = (motor_encoder_get(MOTOR_B) - motor_b_enc_last) / (MOTOR_ENCODER_TICKS * sampling_time_sec);  
+    int32_t motor_a_enc = motor_encoder_get(MOTOR_A);
+    int32_t motor_b_enc = motor_encoder_get(MOTOR_B);
+
+    current_motor_a_speed = (motor_a_enc - motor_a_enc_last) / (MOTOR_ENCODER_TICKS * sampling_time_sec);
+    current_motor_b_speed = (motor_b_enc - motor_b_enc_last) / (MOTOR_ENCODER_TICKS * sampling_time_sec);  
 
     current_angle = alpha * (current_angle + sampling_time_sec * gyro_angular) + (1 - alpha) * acc_angle_deg;    
     current_robot_speed = (current_motor_a_speed + current_motor_b_speed) / 2;
+
+    motor_a_enc_last = motor_a_enc;
+    motor_b_enc_last = motor_b_enc;
 }
 /*
 w funkcji controler_update()
@@ -127,5 +131,29 @@ void controler_update()
     
     motor_set_power(MOTOR_A,motor_a_power);
     motor_set_power(MOTOR_B,motor_b_power);
+}
+
+void controler_stop()
+{
+    pid_set_mode(pid_speed, E_MODE_MANUAL);
+    pid_set_mode(pid_imu, E_MODE_MANUAL);
+    pid_set_mode(pid_motor_a, E_MODE_MANUAL);
+    pid_set_mode(pid_motor_b, E_MODE_MANUAL);
+    motor_a_power = 0;
+    motor_b_power = 0;
+    // TODO: parking
+}
+
+void controler_run()
+{
+    pid_tune(pid_speed, pid_speed->kp_disp, pid_speed->ki_disp, pid_speed->kd_disp);
+    pid_tune(pid_imu, pid_imu->kp_disp, pid_imu->ki_disp, pid_imu->kd_disp);
+    pid_tune(pid_motor_a, pid_motor_a->kp_disp, pid_motor_a->ki_disp, pid_motor_a->kd_disp);
+    pid_tune(pid_motor_b, pid_motor_a->kp_disp, pid_motor_a->ki_disp, pid_motor_a->kd_disp);
+
+    pid_set_mode(pid_speed, E_MODE_AUTO);
+    pid_set_mode(pid_imu, E_MODE_AUTO);
+    pid_set_mode(pid_motor_a, E_MODE_AUTO);
+    pid_set_mode(pid_motor_b, E_MODE_AUTO);
 }
 

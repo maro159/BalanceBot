@@ -7,6 +7,8 @@
 #include "pins.h"
 #include "menu.h"
 #include "oled.h"
+#include "motor.h"
+#include "controler.h"
 #include "encoder_rot.h"
 
 static menu_t *current_menu; // TODO: is static ok?
@@ -14,6 +16,11 @@ static float initial_param;
 static float new_param;
 
 /* NORMAL MENU OPTIONS */
+
+option_t menu_run_options[] =
+{
+    {"CLICK TO STOP...", &menu_main},
+};
 option_t menu_main_options[] =
 {
     {"** MAIN MENU **", &menu_main},
@@ -119,7 +126,8 @@ option_t menu_max_angle_options[] =
     {"", &menu_settings},
 };
 
-menu_t menu_main =  {MENU_NORMAL, menu_main_options, {1, MENU_SIZE(menu_main_options)-1, 1}};
+menu_t menu_run = {MENU_NORMAL, menu_run_options, {0, MENU_SIZE(menu_run_options)-1, 1}};
+menu_t menu_main = {MENU_NORMAL, menu_main_options, {1, MENU_SIZE(menu_main_options)-1, 1}};
 menu_t menu_settings = {MENU_NORMAL, menu_settings_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
 menu_t menu_pids = {MENU_NORMAL, menu_pids_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
 menu_t menu_pid_speed = {MENU_NORMAL, menu_pid_speed_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
@@ -141,8 +149,19 @@ menu_t menu_pid_motor_kd = {MENU_PARAM, menu_pid_motor_kd_options, {-10, 10, 0.1
 menu_t menu_motor_power = {MENU_PARAM, menu_pid_motor_options, {0, 1, 0.01}};
 menu_t menu_max_angle = {MENU_PARAM, menu_pid_motor_options, {0, 90, 1}};
 
-void menu_init()
+void init_menu()
 {
+    menu_bind_parameter(&motor_power_ratio, &menu_motor_power);
+    menu_bind_parameter(&pid_speed->kp_disp, &menu_pid_speed_kp);
+    menu_bind_parameter(&pid_speed->ki_disp, &menu_pid_speed_ki);
+    menu_bind_parameter(&pid_speed->kd_disp, &menu_pid_speed_kd);
+    menu_bind_parameter(&pid_imu->kp_disp, &menu_pid_imu_kp);
+    menu_bind_parameter(&pid_imu->ki_disp, &menu_pid_imu_ki);
+    menu_bind_parameter(&pid_imu->kd_disp, &menu_pid_imu_kd);
+    menu_bind_parameter(&pid_motor_a->kp_disp, &menu_pid_motor_kp);
+    menu_bind_parameter(&pid_motor_a->ki_disp, &menu_pid_motor_ki);
+    menu_bind_parameter(&pid_motor_a->kd_disp, &menu_pid_motor_kd);
+
     current_menu = &menu_main;
     encoder_limit(current_menu->limits.min, current_menu->limits.max);
     oled_show_menu(current_menu);
@@ -154,7 +173,7 @@ void menu_bind_parameter(void *param, menu_t *menu)
     menu->options[0].ptr = param;
 }
 
-int32_t menu_execute()
+bool menu_execute()
 {
     if(encoder_changed()) 
         {
@@ -184,9 +203,10 @@ int32_t menu_execute()
                 printf("saved: %3f\n", new_param);    // TODO: temporary
                 #endif
             }
-            if(nextMenu == NULL) {oled_clear(); return 1;} // EXIT )
+            // if(nextMenu == NULL) {oled_clear(); return 1;} // EXIT )
             
             oled_clear();
+            if(nextMenu == &menu_run) oled_show_logo();
             oled_show_menu(nextMenu);
 
             if(nextMenu->menu_type == MENU_NORMAL)
@@ -210,5 +230,6 @@ int32_t menu_execute()
             else {}
             current_menu = nextMenu;
         }
-        return 0;
+        if(current_menu == &menu_run) return true;
+        else return false;
 }
