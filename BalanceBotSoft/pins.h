@@ -17,7 +17,7 @@
 #define BT_TX 12
 #define BT_RX 13
 #define BT_UART uart0
-#define BT_BAUDRATE 9600
+#define BT_BAUDRATE 115200
 
 #define SERWO 11 
 #define SERWO_SLICE 5

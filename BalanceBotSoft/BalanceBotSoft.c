@@ -25,10 +25,10 @@ volatile bool time_to_go = false;
 
 uint32_t last_time_us = 0;
 
-const uint32_t sampling_time_us = 20 * 1000;
-float sampling_time_sec = sampling_time_us / (1000 * 1000);
+const uint32_t sampling_time_us = 10 * 1000;
+float sampling_time_sec = 0.01;
 
-repeating_timer_t controler_timer;
+
 
 static void init()
 {
@@ -97,21 +97,29 @@ static void init()
 bool controler_timer_callback(repeating_timer_t *t)
 {
     // current_time = time_ms();
+    
     time_to_go = true; 
+    // printf("callback ");
+    gpio_put(BUZZ, false);
+
     return true; //to continue repeating 
+    
 }
 
 void controler_timer_set()
 {
     // Negative delay so means we will call repeating_timer_callback, and call it again 
     // regardless of how long the callback took to execute
-    add_repeating_timer_us(-sampling_time_us,&controler_timer_callback, NULL, &controler_timer);
-    last_time_us = time_us_32();
+    
 }
 
 
 int main() 
 {
+    repeating_timer_t controler_timer;
+    add_repeating_timer_ms(-20,&controler_timer_callback, NULL, &controler_timer);
+    last_time_us = time_us_32();
+
     bool is_run = false;
     bool was_run = false;
 
@@ -135,6 +143,7 @@ int main()
             
             controler_update();
             time_to_go = false;
+            // printf("%d\n",time_us_32()-current_time_us);
         }
 
         is_run = menu_execute(); // indicates if we are in run menu

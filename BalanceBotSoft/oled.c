@@ -49,15 +49,17 @@ void oled_show_value(float value, float step)
     }
     char valueString[max_chars];
     snprintf(valueString, max_chars, "% 1.*f", decimal_digits, value);  // convert number to string
+    ssd1306_draw_square(&oled, 0, 2*FONT_HEIGHT, OLED_WIDTH-1, FONT_HEIGHT, true);
     ssd1306_draw_string_with_font(&oled, 0, 2*FONT_HEIGHT, 1, FONT, valueString);
     ssd1306_show(&oled);
 }
 
 void oled_display_x(int32_t y_pos)
 { 
-    for (int32_t i=0 ; i<OLED_HEIGHT/FONT_HEIGHT+1; i++) {
-        ssd1306_draw_string_with_font(&oled, 0, i*FONT_HEIGHT, 1, FONT, " ");
-    }
+    // for (int32_t i=0 ; i<OLED_HEIGHT/FONT_HEIGHT+1; i++) {
+    //     ssd1306_draw_string_with_font(&oled, 0, i*FONT_HEIGHT, 1, FONT, " ");
+    // }   
+    ssd1306_draw_square(&oled, 0, 0, FONT_WIDTH, 63, true);
     ssd1306_draw_string_with_font(&oled, 0, y_pos*FONT_HEIGHT, 1, FONT, "*");    
     ssd1306_show(&oled);  
 }

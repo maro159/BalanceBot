@@ -10,6 +10,7 @@
 #define CONFIG_REG      0x1A
 #define INT_ENABLE_REG  0x38
 #define GYRO_CONFIG     0x1B
+#define ACCEL_CONFIG    0x1C
 #define USER_CTRL       0x6A
 #define MPU6050_ADDR    0x68
 

@@ -174,10 +174,15 @@ void ssd1306_draw_line(ssd1306_t *p, int32_t x1, int32_t y1, int32_t x2, int32_t
     }
 }
 
-void ssd1306_draw_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+void ssd1306_draw_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height, bool invert) {
     for(uint32_t i=0; i<width; ++i)
+    {
         for(uint32_t j=0; j<height; ++j)
-            ssd1306_draw_pixel(p, x+i, y+j);
+        {
+        if(invert) ssd1306_clear_pixel(p, x+i, y+j);
+        else ssd1306_draw_pixel(p, x+i, y+j);
+        }
+    }
 
 }
 
@@ -200,7 +205,7 @@ void ssd1306_draw_char_with_font(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t 
 
             for(int8_t j=0; j<8; ++j, line>>=1) {
                 if(line & 1)
-                    ssd1306_draw_square(p, x+w*scale, y+((lp<<3)+j)*scale, scale, scale);
+                    ssd1306_draw_square(p, x+w*scale, y+((lp<<3)+j)*scale, scale, scale, false);
             }
 
             ++pp;

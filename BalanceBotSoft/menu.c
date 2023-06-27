@@ -126,7 +126,7 @@ option_t menu_max_angle_options[] =
     {"", &menu_settings},
 };
 
-menu_t menu_run = {MENU_NORMAL, menu_run_options, {0, MENU_SIZE(menu_run_options)-1, 1}};
+menu_t menu_run = {MENU_NORMAL, menu_run_options, {0, MENU_SIZE(menu_run_options)-1, 0}};
 menu_t menu_main = {MENU_NORMAL, menu_main_options, {1, MENU_SIZE(menu_main_options)-1, 1}};
 menu_t menu_settings = {MENU_NORMAL, menu_settings_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
 menu_t menu_pids = {MENU_NORMAL, menu_pids_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
@@ -134,19 +134,19 @@ menu_t menu_pid_speed = {MENU_NORMAL, menu_pid_speed_options, {1, MENU_SIZE(menu
 menu_t menu_pid_imu = {MENU_NORMAL, menu_pid_imu_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
 menu_t menu_pid_motor = {MENU_NORMAL, menu_pid_motor_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
 
-menu_t menu_pid_speed_kp = {MENU_PARAM, menu_pid_speed_kp_options, {-10, 10, 0.1}};
+menu_t menu_pid_speed_kp = {MENU_PARAM, menu_pid_speed_kp_options, {-10, 10, 0.01}};
 menu_t menu_pid_speed_ki = {MENU_PARAM, menu_pid_speed_ki_options, {-1, 1, 0.01}};
-menu_t menu_pid_speed_kd = {MENU_PARAM, menu_pid_speed_kd_options, {-10, 10, 0.1}};
+menu_t menu_pid_speed_kd = {MENU_PARAM, menu_pid_speed_kd_options, {-10, 10, 0.01}};
 
-menu_t menu_pid_imu_kp = {MENU_PARAM, menu_pid_imu_kp_options, {-10, 10, 0.1}};
+menu_t menu_pid_imu_kp = {MENU_PARAM, menu_pid_imu_kp_options, {-10, 10, 0.01}};
 menu_t menu_pid_imu_ki = {MENU_PARAM, menu_pid_imu_ki_options, {-1, 1, 0.01}};
-menu_t menu_pid_imu_kd = {MENU_PARAM, menu_pid_imu_kd_options, {-10, 10, 0.1}};
+menu_t menu_pid_imu_kd = {MENU_PARAM, menu_pid_imu_kd_options, {-10, 10, 0.01}};
 
-menu_t menu_pid_motor_kp = {MENU_PARAM, menu_pid_motor_kp_options, {-10, 10, 0.1}};
+menu_t menu_pid_motor_kp = {MENU_PARAM, menu_pid_motor_kp_options, {-10, 10, 0.01}};
 menu_t menu_pid_motor_ki = {MENU_PARAM, menu_pid_motor_ki_options, {-1, 1, 0.01}};
-menu_t menu_pid_motor_kd = {MENU_PARAM, menu_pid_motor_kd_options, {-10, 10, 0.1}};
+menu_t menu_pid_motor_kd = {MENU_PARAM, menu_pid_motor_kd_options, {-10, 10, 0.01}};
 
-menu_t menu_motor_power = {MENU_PARAM, menu_pid_motor_options, {0, 1, 0.01}};
+menu_t menu_motor_power = {MENU_PARAM, menu_motor_power_options, {0, 1, 0.01}};
 menu_t menu_max_angle = {MENU_PARAM, menu_pid_motor_options, {0, 90, 1}};
 
 void init_menu()
@@ -165,7 +165,8 @@ void init_menu()
     current_menu = &menu_main;
     encoder_limit(current_menu->limits.min, current_menu->limits.max);
     oled_show_menu(current_menu);
-    oled_display_x(0);
+    encoder_set(current_menu->limits.min);
+    oled_display_x(current_menu->limits.min);
 }
 
 void menu_bind_parameter(void *param, menu_t *menu)
@@ -184,7 +185,7 @@ bool menu_execute()
             else if (current_menu->menu_type == MENU_PARAM )
             {   
                 new_param = initial_param + (encoder_get()) * current_menu->limits.step;
-                oled_show_value(new_param, current_menu->limits.max);
+                oled_show_value(new_param, current_menu->limits.step);
             }
         }
 

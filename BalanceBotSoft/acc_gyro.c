@@ -2,15 +2,12 @@
 #include "pins.h"
 #include "hardware/i2c.h"
 
-int16_t acceleration[3];
-int16_t gyro[3];
-int16_t temp;
+
 
 float acc_angle_deg;
 float gyro_angular;
 
-void acc_calc_angle();
-void gyro_calc_angular();
+
 
 // uint32_t current_time;
 // float previous_time;
@@ -30,15 +27,16 @@ void init_acc_gyro()
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf3, 2, false);
     uint8_t buf4[] = {CONFIG_REG, 0};
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf4, 2, false);
-    uint8_t buf5[] = {GYRO_CONFIG, 24};
+    uint8_t buf5[] = {GYRO_CONFIG, 0};
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf5, 2, false);
-    //reset FIFO 
-    uint8_t buf6[] = {USER_CTRL,0x44}; 
+    uint8_t buf6[] = {ACCEL_CONFIG, 0};
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf6, 2, false);
-    sleep_ms(20); //można zmienić jak będzie za dużo/za mało, fifo usuwa dane w kilka ms 
-    uint8_t buf7[] = {USER_CTRL,0x40}; 
+    //reset FIFO 
+    uint8_t buf7[] = {USER_CTRL,0x44}; 
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf7, 2, false);
-
+    sleep_ms(20); //można zmienić jak będzie za dużo/za mało, fifo usuwa dane w kilka ms 
+    uint8_t buf8[] = {USER_CTRL,0x40}; 
+    i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf8, 2, false);
 
     //TODO sprawdzić i ustawić offsety 
 
@@ -72,30 +70,27 @@ void mpu6050_read_data()
         
     }
     
-    acc_calc_angle();
-    gyro_calc_angular();
-   
-}
+    int16_t acc_x = accel[0];
+    int16_t acc_y = accel[1];
+    int16_t acc_z = accel[2];
 
-void acc_calc_angle()
-{
-    int16_t acc_x = acceleration[0];
-    int16_t acc_y = acceleration[1];
-    int16_t acc_z = acceleration[2];
+    acc_angle_deg = atan2(acc_z, -acc_x) * (180/M_PI);
 
-    acc_angle_deg = atan2(acc_x, acc_z) * (180/M_PI);
-
-}
-
-
-void gyro_calc_angular()
-{
     int16_t gyro_x = gyro[0];
     int16_t gyro_y = gyro[1];
     int16_t gyro_z = gyro[2];
 
     gyro_angular = gyro_y / 131;
     
+   
+}
+
+
+
+
+void gyro_calc_angular()
+{
+
 }
 
 
