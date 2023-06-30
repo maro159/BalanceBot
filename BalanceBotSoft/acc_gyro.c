@@ -2,18 +2,8 @@
 #include "pins.h"
 #include "hardware/i2c.h"
 
-
-
 float acc_angle_deg;
 float gyro_angular;
-
-
-
-// uint32_t current_time;
-// float previous_time;
-// float loop_time;
-
-
 
 void init_acc_gyro()
 {
@@ -74,7 +64,7 @@ void mpu6050_read_data()
     int16_t acc_y = accel[1];
     int16_t acc_z = accel[2];
 
-    acc_angle_deg = atan2(acc_z, -acc_x) * (180/M_PI);
+    acc_angle_deg = -atan2(acc_z, -acc_x) * (180/M_PI);
 
     int16_t gyro_x = gyro[0];
     int16_t gyro_y = gyro[1];
@@ -84,15 +74,6 @@ void mpu6050_read_data()
     
    
 }
-
-
-
-
-void gyro_calc_angular()
-{
-
-}
-
 
 
 /*

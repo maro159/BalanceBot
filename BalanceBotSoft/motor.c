@@ -94,7 +94,7 @@ void motor_set_power(Motor motor, float power)
 
     power = fabsf(power); 
     if (power > 1) power = 1;
-    uint16_t pwm = (uint16_t)(power * motor_power_ratio * 32767); 
+    uint16_t pwm = (uint16_t)(power * motor_power_ratio * 65535); 
    
     _set_pwm(motor, pwm, dir); 
 

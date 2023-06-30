@@ -3,6 +3,7 @@
 
 #include "pid.h"
 
+extern float zero_angle;
 extern pid_ctrl pid_speed;
 extern pid_ctrl pid_imu;
 extern pid_ctrl pid_motor_a;

@@ -3,7 +3,7 @@
 
 
 #define MOTOR_A_INVERT 0
-#define MOTOR_B_INVERT 0
+#define MOTOR_B_INVERT 1
 #define ENC_MAX_STEPRATE 0
 
 #define MOTOR_ENC_PIO pio0

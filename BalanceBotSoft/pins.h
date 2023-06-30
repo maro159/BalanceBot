@@ -1,7 +1,7 @@
 #ifndef _PINS_H_
 #define _PINS_H_
 
-#define DEBUG_MODE
+// #define DEBUG_MODE
 
 #define IMU_SDA 0
 #define IMU_SCL 1

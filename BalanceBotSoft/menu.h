@@ -52,7 +52,7 @@ extern menu_t menu_pid_motor_ki;
 extern menu_t menu_pid_motor_kd;
 
 extern menu_t menu_motor_power;
-extern menu_t menu_max_angle;
+extern menu_t menu_angle;
 
 void init_menu();
 void menu_bind_parameter(void *param, menu_t *menu);

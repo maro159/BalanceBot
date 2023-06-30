@@ -25,10 +25,8 @@ volatile bool time_to_go = false;
 
 uint32_t last_time_us = 0;
 
-const uint32_t sampling_time_us = 10 * 1000;
-float sampling_time_sec = 0.01;
-
-
+const uint32_t sampling_time_us = 5 * 1000;
+float sampling_time_sec = 0.005;
 
 static void init()
 {
@@ -96,33 +94,16 @@ static void init()
 
 bool controler_timer_callback(repeating_timer_t *t)
 {
-    // current_time = time_ms();
-    
     time_to_go = true; 
-    // printf("callback ");
-    gpio_put(BUZZ, false);
-
     return true; //to continue repeating 
-    
 }
-
-void controler_timer_set()
-{
-    // Negative delay so means we will call repeating_timer_callback, and call it again 
-    // regardless of how long the callback took to execute
-    
-}
-
 
 int main() 
 {
-    repeating_timer_t controler_timer;
-    add_repeating_timer_ms(-20,&controler_timer_callback, NULL, &controler_timer);
-    last_time_us = time_us_32();
-
     bool is_run = false;
     bool was_run = false;
 
+    repeating_timer_t controler_timer;
     init();
     init_motors();
     // init_servo();
@@ -131,21 +112,23 @@ int main()
     init_acc_gyro();
     init_controler();
     init_menu();
-
-    controler_timer_set();
+    /* Negative delay so means we will call repeating_timer_callback, and call it again 
+     * regardless of how long the callback took to execute */
+    add_repeating_timer_ms(-5,&controler_timer_callback, NULL, &controler_timer); 
     while(true)
     {
         if(time_to_go)// && current_menu == RUN
         {
             uint32_t current_time_us = time_us_32();
             uint32_t dt_us = current_time_us - last_time_us;
-            last_time_us = current_time_us; 
-            
+            last_time_us = current_time_us;
+            // printf("*%u\n*",dt_us);
             controler_update();
+            // printf("*%u\n*",time_us_32()-last_time_us);
+            // printf("%f,%f\n", *pid_speed->input, *pid_speed->output);
+            
             time_to_go = false;
-            // printf("%d\n",time_us_32()-current_time_us);
         }
-
         is_run = menu_execute(); // indicates if we are in run menu
         if(!was_run && is_run) controler_run();
         else if(was_run && !is_run) controler_stop();

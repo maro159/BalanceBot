@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "pico/stdlib.h"
 #include "encoder_rot.h"
 #include "pins.h"
@@ -58,9 +59,10 @@ void encoder_callback(uint gpio, uint32_t event_mask)
 
 bool encoder_changed()
 {
-    if(encoder_last != encoder_count)
+    int32_t delta = encoder_count - encoder_last;
+    if(delta >= 4 || delta <=-4)
     {
-        // printf("enc_last_count: %d \n", counter_en);
+        encoder_count &= ~0b11; // bring to nearest multiple of 4.
         encoder_last = encoder_count;
         return true;
     }
@@ -79,7 +81,9 @@ bool encoder_clicked()
 
 int32_t encoder_get()
 {
-    return encoder_count/4;
+    // int32_t count = encoder_count/4;
+    // printf("%d,%d,%d,%d,%d\n", encoder_count, count, 4*count, encoder_max, encoder_last);
+    return(encoder_count/4);
 }
 
 void encoder_set(int32_t value)

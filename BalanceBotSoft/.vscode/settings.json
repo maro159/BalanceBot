@@ -28,6 +28,8 @@
         "stdio_uart.h": "c",
         "stdio.h": "c",
         "*.s": "c",
-        "adc.h": "c"
+        "adc.h": "c",
+        "controler.h": "c",
+        "math.h": "c"
     }
 }
