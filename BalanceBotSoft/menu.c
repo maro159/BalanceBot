@@ -134,17 +134,17 @@ menu_t menu_pid_speed = {MENU_NORMAL, menu_pid_speed_options, {1, MENU_SIZE(menu
 menu_t menu_pid_imu = {MENU_NORMAL, menu_pid_imu_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
 menu_t menu_pid_motor = {MENU_NORMAL, menu_pid_motor_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
 
-menu_t menu_pid_speed_kp = {MENU_PARAM, menu_pid_speed_kp_options, {-30, 30, 0.01}};
-menu_t menu_pid_speed_ki = {MENU_PARAM, menu_pid_speed_ki_options, {-1, 1, 0.01}};
-menu_t menu_pid_speed_kd = {MENU_PARAM, menu_pid_speed_kd_options, {-15, 15, 0.01}};
+menu_t menu_pid_speed_kp = {MENU_PARAM, menu_pid_speed_kp_options, {0, 30, 0.1}};
+menu_t menu_pid_speed_ki = {MENU_PARAM, menu_pid_speed_ki_options, {0, 30, 0.1}};
+menu_t menu_pid_speed_kd = {MENU_PARAM, menu_pid_speed_kd_options, {0, 1, 0.001}};
 
-menu_t menu_pid_imu_kp = {MENU_PARAM, menu_pid_imu_kp_options, {-0, 30, 0.1}};
-menu_t menu_pid_imu_ki = {MENU_PARAM, menu_pid_imu_ki_options, {0, 5, 0.01}};
-menu_t menu_pid_imu_kd = {MENU_PARAM, menu_pid_imu_kd_options, {0, 5, 0.01}};
+menu_t menu_pid_imu_kp = {MENU_PARAM, menu_pid_imu_kp_options, {0, 30, 0.1}};
+menu_t menu_pid_imu_ki = {MENU_PARAM, menu_pid_imu_ki_options, {0, 30, 0.1}};
+menu_t menu_pid_imu_kd = {MENU_PARAM, menu_pid_imu_kd_options, {0, 1, 0.001}};
 
-menu_t menu_pid_motor_kp = {MENU_PARAM, menu_pid_motor_kp_options, {-10, 10, 0.01}};
-menu_t menu_pid_motor_ki = {MENU_PARAM, menu_pid_motor_ki_options, {-1, 1, 0.01}};
-menu_t menu_pid_motor_kd = {MENU_PARAM, menu_pid_motor_kd_options, {-10, 10, 0.01}};
+menu_t menu_pid_motor_kp = {MENU_PARAM, menu_pid_motor_kp_options, {0, 30, 0.1}};
+menu_t menu_pid_motor_ki = {MENU_PARAM, menu_pid_motor_ki_options, {0, 30, 0.1}};
+menu_t menu_pid_motor_kd = {MENU_PARAM, menu_pid_motor_kd_options, {0, 1, 0.001}};
 
 menu_t menu_motor_power = {MENU_PARAM, menu_motor_power_options, {0, 1, 0.01}};
 menu_t menu_angle = {MENU_PARAM, menu_angle_options, {-10, 10, 0.1}};

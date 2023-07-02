@@ -4,6 +4,9 @@
 
 #define MOTOR_A_INVERT 0
 #define MOTOR_B_INVERT 1
+
+#define ENC_A_INVERT 0
+#define ENC_B_INVERT 0
 #define ENC_MAX_STEPRATE 0
 
 #define MOTOR_ENC_PIO pio0
@@ -23,10 +26,11 @@ extern float motor_power_ratio;
 void init_motors();
 void init_servo();
 void servo_set_position();
-// void motor_set_speed(Motor motor, uint16_t speed, bool direction);
 void motor_set_power(Motor motor, float power);
 void motor_limit(float motor_ratio);
+// latch encoder count
 void motor_encoder_request();
+ // return latched encoder count, must be preceded with motor_encoder_request();
 int32_t motor_encoder_get(Motor motor);
 
 

@@ -5,21 +5,18 @@
 #include "pins.h"
 
 static volatile bool status_SW = false;
-static volatile uint32_t last_state = 0xFFFFFFFF;
-static volatile int32_t encoder_count = 0;  // multiplied by 4
-static int32_t encoder_last = 0;  // multiplied by 4
-static int32_t encoder_min = 0; // multiplied by 4
-static int32_t encoder_max = 0; // multiplied by 4
+static volatile int32_t encoder_count = 0;
+static int32_t encoder_last = 0;
+static int32_t encoder_min = 0;
+static int32_t encoder_max = 0;
 
 
 void init_encoder() 
 {
-    gpio_set_irq_enabled(ENC_ROT_A, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true);
-    gpio_set_irq_enabled(ENC_ROT_B, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true);
+    gpio_set_irq_enabled(ENC_ROT_A, GPIO_IRQ_EDGE_FALL, true);
     gpio_set_irq_enabled(ENC_ROT_SW, GPIO_IRQ_EDGE_FALL, true);
     gpio_set_irq_callback(&encoder_callback);
     irq_set_enabled(IO_IRQ_BANK0, true);
-    last_state = 0xFF;   // TODO: reduntant lines
     encoder_count = 0;
     encoder_last = 0;
     encoder_limit(0, 0);
@@ -27,23 +24,17 @@ void init_encoder()
 
 void encoder_limit(int32_t min, int32_t max)
 {
-    encoder_min = 4*min; 
-    encoder_max = 4*max; // TODO: -1 czy nie
+    encoder_min = min; 
+    encoder_max = max; // TODO: -1 czy nie
 }
 
 void encoder_callback(uint gpio, uint32_t event_mask)
 {
     if(gpio == ENC_ROT_SW) status_SW = true;
-    else if(gpio == ENC_ROT_A || gpio == ENC_ROT_B)
+    else if(gpio == ENC_ROT_A)
     {   
-        // store levels of encoder inputs in one variable
-        uint32_t current_state = (gpio_get(ENC_ROT_B) << 1) | (gpio_get(ENC_ROT_A));
-        // combine current and previous encoder states
-        uint32_t states = (last_state << 2) | (current_state);
-        //  increment or decrement encoder counter depending on state change
-        if(states == 0b1101 || states == 0b0100 || states == 0b0010 || states == 0b1011) encoder_count++;
-        else if(states == 0b1110 || states == 0b0111 || states == 0b0001 || states == 0b1000) encoder_count--;
-        last_state = current_state;
+        if(gpio_get(ENC_ROT_B)) encoder_count--;
+        else encoder_count++;
 
         #if ENC_GO_AROUND == 0
         if(encoder_count > encoder_max) encoder_count = encoder_max;
@@ -59,10 +50,8 @@ void encoder_callback(uint gpio, uint32_t event_mask)
 
 bool encoder_changed()
 {
-    int32_t delta = encoder_count - encoder_last;
-    if(delta >= 4 || delta <=-4)
+    if(encoder_count != encoder_last)
     {
-        encoder_count &= ~0b11; // bring to nearest multiple of 4.
         encoder_last = encoder_count;
         return true;
     }
@@ -83,12 +72,12 @@ int32_t encoder_get()
 {
     // int32_t count = encoder_count/4;
     // printf("%d,%d,%d,%d,%d\n", encoder_count, count, 4*count, encoder_max, encoder_last);
-    return(encoder_count/4);
+    return(encoder_count);
 }
 
 void encoder_set(int32_t value)
 {
-    encoder_count = 4*value;  // TODO: check if within limits   
+    encoder_count = value;  // TODO: check if within limits   
 }
 
 

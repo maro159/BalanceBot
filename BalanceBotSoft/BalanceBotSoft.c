@@ -25,8 +25,8 @@ volatile bool time_to_go = false;
 
 uint32_t last_time_us = 0;
 
-const uint32_t sampling_time_us = 5 * 1000;
-float sampling_time_sec = 0.005;
+const uint32_t sampling_time_us = 10 * 1000;
+float sampling_time_sec = 0.01;
 
 static void init()
 {
@@ -81,17 +81,6 @@ static void init()
     gpio_set_dir(ENC_ROT_SW, false);
 }
 
-/*uint32_t convert_pwm(int value, bool *direction)
-{
-    *direction = DIR_FORWARD;
-    if(value < 0) *direction = DIR_REVERSE;
-
-    value = abs(value);
-    if (value > 65535) value = 65535;
-    return value;
-}
-*/
-
 bool controler_timer_callback(repeating_timer_t *t)
 {
     time_to_go = true; 
@@ -114,7 +103,7 @@ int main()
     init_menu();
     /* Negative delay so means we will call repeating_timer_callback, and call it again 
      * regardless of how long the callback took to execute */
-    add_repeating_timer_ms(-5,&controler_timer_callback, NULL, &controler_timer); 
+    add_repeating_timer_ms(-10,&controler_timer_callback, NULL, &controler_timer); 
     while(true)
     {
         if(time_to_go)// && current_menu == RUN
@@ -125,7 +114,7 @@ int main()
             // printf("*%u\n*",dt_us);
             controler_update();
             // printf("*%u\n*",time_us_32()-last_time_us);
-            // printf("%f,%f\n", *pid_speed->input, *pid_speed->output);
+            printf("%f,%f,%f,%f,%f,%f\n",*pid_speed->setpoint, *pid_speed->input, *pid_imu->setpoint, *pid_imu->input, *pid_motor_a->setpoint, *pid_motor_a->input);
             
             time_to_go = false;
         }

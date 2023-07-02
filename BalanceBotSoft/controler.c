@@ -5,14 +5,13 @@
 #include "pid.h"
 #include "motor.h"
 
-float last_speeds[100];
+float last_speeds[30] = {0};
 uint32_t speed_head = 0;
-float mean_speed = 0.0;
 
 float current_robot_speed = 0.0;
-float target_robot_speed = 1.0; // to remote control
+float target_robot_speed = 0.0; // to remote control
 
-float zero_angle = 12;
+float zero_angle = 11.5;
 float target_angle = 0.0;
 float target_angle_offset = 0.0;
 
@@ -51,13 +50,13 @@ set         &target_robotspeed          &target_angle           &target_motor_sp
 
 void init_controler()
 {   
-    float kp_speed = 0.5;
-    float ki_speed = 0.0;
-    float kd_speed = 0.0;
+    float kp_speed = 3.0;
+    float ki_speed = 3.0;
+    float kd_speed = 0.080;
 
-    float kp_imu = 4.0;
+    float kp_imu = 5.0;
     float ki_imu = 0.0;
-    float kd_imu = 0.04;
+    float kd_imu = 0.080;
 
     float kp_motor_a = 0.2;
     float ki_motor_a = 0.0;
@@ -67,7 +66,7 @@ void init_controler()
     float ki_motor_b = 0.0;
     float kd_motor_b = 0.0;
 
-    pid_speed = pid_create(&pid_speed_ctrl, &mean_speed, &target_angle_offset, &target_robot_speed, kp_speed, ki_speed, kd_speed); 
+    pid_speed = pid_create(&pid_speed_ctrl, &current_robot_speed, &target_angle_offset, &target_robot_speed, kp_speed, ki_speed, kd_speed); 
     pid_imu = pid_create(&pid_imu_ctrl, &current_angle, &target_motors_speed, &target_angle, kp_imu, ki_imu, kd_imu);
     pid_motor_a = pid_create(&pid_motor_a_ctrl, &current_motor_a_speed, &motor_a_power, &target_motors_speed, kp_motor_a, ki_motor_a, kd_motor_a);
     pid_motor_b = pid_create(&pid_motor_b_ctrl, &current_motor_b_speed, &motor_b_power, &target_motors_speed, kp_motor_b, ki_motor_b, kd_motor_b);
@@ -77,21 +76,19 @@ void init_controler()
     pid_sample(pid_motor_a, sampling_time_us);
     pid_sample(pid_motor_b, sampling_time_us);
 
-    pid_limits(pid_speed, -60, 60); //miny i maxy do wpisania ręcznie
-    pid_limits(pid_imu, -10, 10);
-    pid_limits(pid_motor_a, -1, 1);
-    pid_limits(pid_motor_b, -1, 1);
-
-    // pid_direction(pid_speed, E_PID_REVERSE);
+    pid_limits(pid_speed, -10, 10); // max angle offset to achieve speed
+    pid_limits(pid_imu, -10, 10);   // max motor speed
+    pid_limits(pid_motor_a, -1, 1); // max motor a power
+    pid_limits(pid_motor_b, -1, 1); // max motor b power
 
     mpu6050_read_data();
-    current_angle = acc_angle_deg;
+    current_angle = acc_angle_deg;  // initial angle from accelerometer
 
 }
-
+ 
 void refresh_data() 
 {
-    float alpha = 0.994;
+    float alpha = 0.990;
 
     motor_encoder_request();
     mpu6050_read_data();
@@ -99,81 +96,79 @@ void refresh_data()
     int32_t motor_a_enc = motor_encoder_get(MOTOR_A);
     int32_t motor_b_enc = motor_encoder_get(MOTOR_B);
 
+    /* unit of motor speed is 4 * rps (rotates per second)
+     * could be divided by 4 but is not
+     */
     current_motor_a_speed = (motor_a_enc - motor_a_enc_last) / (MOTOR_ENCODER_TICKS * sampling_time_sec);
     current_motor_b_speed = (motor_b_enc - motor_b_enc_last) / (MOTOR_ENCODER_TICKS * sampling_time_sec);
-    #if MOTOR_A_INVERT==1
+    #if ENC_A_INVERT==1
     current_motor_a_speed = -current_motor_a_speed;
     #endif
-    #if MOTOR_B_INVERT==1
+    #if ENC_B_INVERT==1
     current_motor_b_speed = -current_motor_b_speed;
     #endif
 
     current_angle = alpha * (current_angle + sampling_time_sec * gyro_angular) + (1 - alpha) * acc_angle_deg;
-    // current_angle = (current_angle + sampling_time_sec * gyro_angular);    
+    // current_angle = (current_angle + sampling_time_sec * gyro_angular); 
     // current_angle = alpha * current_angle + (1 - alpha) * acc_angle_deg;
+
+
+    /* robot speed is calculated as moving average to achieve smooth control */
     current_robot_speed = (current_motor_a_speed + current_motor_b_speed) / 2;
     last_speeds[speed_head++] = current_robot_speed;
     if(speed_head >= sizeof(last_speeds)/sizeof(last_speeds[0])) speed_head = 0;
 
-    mean_speed = 0;
+    current_robot_speed = 0;
     for(uint32_t i = 0; i < sizeof(last_speeds)/sizeof(last_speeds[0]); i++)
     {
-        mean_speed += last_speeds[i];
+        current_robot_speed += last_speeds[i];
     }
-    mean_speed /= sizeof(last_speeds)/sizeof(last_speeds[0]);
-    printf("%f,%f\n", current_robot_speed, mean_speed);
+    current_robot_speed /= sizeof(last_speeds)/sizeof(last_speeds[0]);
     motor_a_enc_last = motor_a_enc;
     motor_b_enc_last = motor_b_enc;
-
-    #ifdef DEBUG_MODE
-    // printf("%f\t%f\n",current_motor_a_speed, current_motor_b_speed);
-    #endif
 }
-/*
-w funkcji controler_update()
-refresh_data()
-pid_compute() // wszystkie pidy
-
-*/
 
 void controler_update()
 {
     refresh_data();
 
-    pid_compute(pid_speed);
-    target_angle = zero_angle + target_angle_offset;
-    pid_compute(pid_imu);
-    pid_compute(pid_motor_a);
-    pid_compute(pid_motor_b);
-    motor_a_power = target_motors_speed * 0.1;
-    motor_b_power = target_motors_speed * 0.1;
+    pid_compute(pid_speed);     // compute angle offset to achieve target speed
+    target_angle = zero_angle - target_angle_offset;
+    pid_compute(pid_imu);       // compute motor speed to achieve target angle 
+    pid_compute(pid_motor_a);   // compute motor power (pwm) to achieve target speed
+    pid_compute(pid_motor_b);   // compute motor power (pwm) to achieve target speed
+    motor_a_power = target_motors_speed * 0.1;  // TODO: use pid instead
+    motor_b_power = target_motors_speed * 0.1;  // TODO: use pid instead
     motor_set_power(MOTOR_A,motor_a_power);
     motor_set_power(MOTOR_B,motor_b_power);
 }
 
 void controler_stop()
 {
+    // disable pids, and set outputs to 0
     pid_set_mode(pid_speed, E_MODE_MANUAL);
     pid_set_mode(pid_imu, E_MODE_MANUAL);
     pid_set_mode(pid_motor_a, E_MODE_MANUAL);
     pid_set_mode(pid_motor_b, E_MODE_MANUAL);
+    *pid_speed->output = 0;
     *pid_imu->output = 0;
-    motor_a_power = 0;
-    motor_b_power = 0;
+    *pid_motor_a->output = 0;
+    *pid_motor_b->output = 0;
     // TODO: parking
 }
 
 void controler_run()
 {
+    // set pids coeffs which may changed in menu
     pid_tune(pid_speed, pid_speed->kp_disp, pid_speed->ki_disp, pid_speed->kd_disp);
     pid_tune(pid_imu, pid_imu->kp_disp, pid_imu->ki_disp, pid_imu->kd_disp);
     pid_tune(pid_motor_a, pid_motor_a->kp_disp, pid_motor_a->ki_disp, pid_motor_a->kd_disp);
     pid_tune(pid_motor_b, pid_motor_a->kp_disp, pid_motor_a->ki_disp, pid_motor_a->kd_disp);
 
+    // turn on pids
     pid_set_mode(pid_speed, E_MODE_AUTO);
     pid_set_mode(pid_imu, E_MODE_AUTO);
     // pid_set_mode(pid_motor_a, E_MODE_AUTO);
     // pid_set_mode(pid_motor_b, E_MODE_AUTO);
-
 }
 
