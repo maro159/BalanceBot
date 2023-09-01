@@ -14,7 +14,7 @@
 #define FONT_HEIGHT (FONT[0])
 
 void init_oled();
-void oled_display_x(int32_t y_pos);
+void oled_display_cursor(int32_t y_pos);
 void oled_show_menu(menu_t *menu);
 void oled_show_value(float value, float step);
 void oled_show_logo();

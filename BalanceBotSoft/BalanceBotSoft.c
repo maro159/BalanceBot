@@ -103,10 +103,10 @@ int main()
     init_menu();
     /* Negative delay so means we will call repeating_timer_callback, and call it again 
      * regardless of how long the callback took to execute */
-    add_repeating_timer_ms(-10,&controler_timer_callback, NULL, &controler_timer); 
+    add_repeating_timer_ms(-10, &controler_timer_callback, NULL, &controler_timer); 
     while(true)
     {
-        if(time_to_go)// && current_menu == RUN
+        if(time_to_go)
         {
             uint32_t current_time_us = time_us_32();
             uint32_t dt_us = current_time_us - last_time_us;
@@ -118,7 +118,9 @@ int main()
             
             time_to_go = false;
         }
-        is_run = menu_execute(); // indicates if we are in run menu
+        if(menu_execute() == &menu_run) is_run = true;
+        else is_run = false;
+
         if(!was_run && is_run) controler_run();
         else if(was_run && !is_run) controler_stop();
         was_run = is_run;

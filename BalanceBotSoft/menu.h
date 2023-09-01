@@ -56,6 +56,7 @@ extern menu_t menu_angle;
 
 void init_menu();
 void menu_bind_parameter(void *param, menu_t *menu);
-bool menu_execute();
+// get pointer current menu
+menu_t *menu_execute();
 
 #endif
