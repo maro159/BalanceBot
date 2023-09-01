@@ -1,43 +1,45 @@
 #include "pico/stdlib.h"
 #include "controler.h"
 #include "pins.h"
-#include "acc_gyro.h"
+#include "imu.h"
 #include "pid.h"
 #include "motor.h"
 
-float last_speeds[30] = {0};
-uint32_t speed_head = 0;
+// TODO: clean sampling time value setting
+extern const uint32_t sampling_time_us; 
+extern float sampling_time_sec;
 
-float current_robot_speed = 0.0;
-float target_robot_speed = 0.0; // to remote control
+static float last_speeds[30] = {0};
+static uint32_t last_speeds_head = 0;
 
-float zero_angle = 11.5;
-float target_angle = 0.0;
-float target_angle_offset = 0.0;
+static float current_robot_speed = 0.0;
+float target_robot_speed = 0.0; // for remote control
 
-float current_angle = 0.0;
-float target_motors_speed = 0.0;   
+float zero_angle = 11.5; // global
+static float target_angle = 0.0;
+static float target_angle_offset = 0.0;
 
-float current_motor_a_speed = 0.0;
-float motor_a_power = 0.0;                
+static float current_angle = 0.0;
+static float target_motors_speed = 0.0;   
 
-float current_motor_b_speed = 0.0;
-float motor_b_power = 0.0;   
+static float current_motor_a_speed = 0.0;
+static float motor_a_power = 0.0;                
 
-struct pid_controller pid_speed_ctrl;
-struct pid_controller pid_imu_ctrl;
-struct pid_controller pid_motor_a_ctrl;
-struct pid_controller pid_motor_b_ctrl;
+static float current_motor_b_speed = 0.0;
+static float motor_b_power = 0.0;   
+
+static struct pid_controller pid_speed_ctrl;
+static struct pid_controller pid_imu_ctrl;
+static struct pid_controller pid_motor_a_ctrl;
+static struct pid_controller pid_motor_b_ctrl;
 
 pid_ctrl pid_speed;
 pid_ctrl pid_imu;
 pid_ctrl pid_motor_a;
 pid_ctrl pid_motor_b;
 
-extern const uint32_t sampling_time_us; 
-extern float sampling_time_sec;
-int32_t motor_a_enc_last = 0; 
-int32_t motor_b_enc_last = 0; 
+static int32_t motor_a_enc_last = 0; 
+static int32_t motor_b_enc_last = 0; 
 
 
 /*
@@ -58,18 +60,14 @@ void init_controler()
     float ki_imu = 0.0;
     float kd_imu = 0.080;
 
-    float kp_motor_a = 0.2;
-    float ki_motor_a = 0.0;
-    float kd_motor_a = 0.0;
-    
-    float kp_motor_b = 0.2;
-    float ki_motor_b = 0.0;
-    float kd_motor_b = 0.0;
+    float kp_motor = 0.2;
+    float ki_motor = 0.0;
+    float kd_motor = 0.0;
 
     pid_speed = pid_create(&pid_speed_ctrl, &current_robot_speed, &target_angle_offset, &target_robot_speed, kp_speed, ki_speed, kd_speed); 
     pid_imu = pid_create(&pid_imu_ctrl, &current_angle, &target_motors_speed, &target_angle, kp_imu, ki_imu, kd_imu);
-    pid_motor_a = pid_create(&pid_motor_a_ctrl, &current_motor_a_speed, &motor_a_power, &target_motors_speed, kp_motor_a, ki_motor_a, kd_motor_a);
-    pid_motor_b = pid_create(&pid_motor_b_ctrl, &current_motor_b_speed, &motor_b_power, &target_motors_speed, kp_motor_b, ki_motor_b, kd_motor_b);
+    pid_motor_a = pid_create(&pid_motor_a_ctrl, &current_motor_a_speed, &motor_a_power, &target_motors_speed, kp_motor, ki_motor, kd_motor);
+    pid_motor_b = pid_create(&pid_motor_b_ctrl, &current_motor_b_speed, &motor_b_power, &target_motors_speed, kp_motor, ki_motor, kd_motor);
 
     pid_sample(pid_speed, sampling_time_us);
     pid_sample(pid_imu, sampling_time_us);
@@ -81,17 +79,19 @@ void init_controler()
     pid_limits(pid_motor_a, -1, 1); // max motor a power
     pid_limits(pid_motor_b, -1, 1); // max motor b power
 
-    mpu6050_read_data();
+    imu_read_data();
     current_angle = acc_angle_deg;  // initial angle from accelerometer
 
 }
  
-void refresh_data() 
+static void _refresh_data() 
 {
+    // TODO: make independent from sampling timr
+    // parameter used in complementary filter. Pretty much dependent on sampling time.
     float alpha = 0.990;
 
     motor_encoder_request();
-    mpu6050_read_data();
+    imu_read_data();
     
     int32_t motor_a_enc = motor_encoder_get(MOTOR_A);
     int32_t motor_b_enc = motor_encoder_get(MOTOR_B);
@@ -108,15 +108,16 @@ void refresh_data()
     current_motor_b_speed = -current_motor_b_speed;
     #endif
 
+    // implementation of complementary filter to obtain reliable angle
     current_angle = alpha * (current_angle + sampling_time_sec * gyro_angular) + (1 - alpha) * acc_angle_deg;
-    // current_angle = (current_angle + sampling_time_sec * gyro_angular); 
-    // current_angle = alpha * current_angle + (1 - alpha) * acc_angle_deg;
+    // current_angle = (current_angle + sampling_time_sec * gyro_angular);  // gyroscope-only angle 
+    // current_angle = alpha * current_angle + (1 - alpha) * acc_angle_deg; // accelerometer-only angle
 
 
     /* robot speed is calculated as moving average to achieve smooth control */
     current_robot_speed = (current_motor_a_speed + current_motor_b_speed) / 2;
-    last_speeds[speed_head++] = current_robot_speed;
-    if(speed_head >= sizeof(last_speeds)/sizeof(last_speeds[0])) speed_head = 0;
+    last_speeds[last_speeds_head++] = current_robot_speed;
+    if(last_speeds_head >= sizeof(last_speeds)/sizeof(last_speeds[0])) last_speeds_head = 0;
 
     current_robot_speed = 0;
     for(uint32_t i = 0; i < sizeof(last_speeds)/sizeof(last_speeds[0]); i++)
@@ -130,7 +131,7 @@ void refresh_data()
 
 void controler_update()
 {
-    refresh_data();
+    _refresh_data();
 
     pid_compute(pid_speed);     // compute angle offset to achieve target speed
     target_angle = zero_angle - target_angle_offset;

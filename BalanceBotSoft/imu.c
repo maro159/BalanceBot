@@ -1,14 +1,12 @@
-#include "acc_gyro.h"
+#include "imu.h"
 #include "pins.h"
 #include "hardware/i2c.h"
 
 float acc_angle_deg;
 float gyro_angular;
 
-void init_acc_gyro()
+void init_imu()
 {
-    // Two byte reset. First byte register, second byte data
-    // There are a load more options to set up the device in different ways that could be added here
     uint8_t buf[] = {INT_ENABLE_REG, 1};
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf, 2, false);
     uint8_t buf2[] = {SMPLRT_DIV_REG, 19}; // sampling frequency 
@@ -24,15 +22,14 @@ void init_acc_gyro()
     //reset FIFO 
     uint8_t buf7[] = {USER_CTRL,0x44}; 
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf7, 2, false);
-    sleep_ms(20); //można zmienić jak będzie za dużo/za mało, fifo usuwa dane w kilka ms 
+    sleep_ms(20); // TODO: may need to be tuned
     uint8_t buf8[] = {USER_CTRL,0x40}; 
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, buf8, 2, false);
-
-    //TODO sprawdzić i ustawić offsety 
+    // TODO: check and set offsets 
 
 }
 
-void mpu6050_read_data()
+void imu_read_data()
 {
     uint8_t buffer[6];
     int16_t accel[3];
@@ -64,22 +61,23 @@ void mpu6050_read_data()
     int16_t acc_y = accel[1];
     int16_t acc_z = accel[2];
 
-    acc_angle_deg = -atan2(acc_z, -acc_x) * (180/M_PI);
+    // calculate angle from accelerometer data
+    acc_angle_deg = -atan2(acc_z, -acc_x) * (180/M_PI); 
 
     int16_t gyro_x = gyro[0];
     int16_t gyro_y = gyro[1];
     int16_t gyro_z = gyro[2];
 
+    // calculate angular speed from gyroscope data
     gyro_angular = gyro_y / 131;
-    
    
 }
 
 
 /*
-// void acc_gyro_print()
+// void imu_print()
 // {
-//     mpu6050_read_raw(acceleration, gyro, &temp);
+//     imu_read_raw(acceleration, gyro, &temp);
 
 //     // These are the raw numbers from the chip, so will need tweaking to be really useful.
 //     // See the datasheet for more information
@@ -93,7 +91,7 @@ void mpu6050_read_data()
 
 // }
 
-/*void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) 
+/*void imu_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) 
 {
     // For this particular device, we send the device the register we want to read
     // first, then subsequently read from the device. The register is auto incrementing

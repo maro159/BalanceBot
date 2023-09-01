@@ -20,34 +20,42 @@ endif()
 
 project(BalanceBotSoft C CXX ASM)
 
-# set(CMAKE_C_COMPILER "C:\proj2\Pico SDK v1.5.0\gcc-arm-none-eabi")
-
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-# Add executable. Default name is the project name, version 0.1
+# Add source files
+add_executable(BalanceBotSoft
+        BalanceBotSoft.c
+        oled.c
+        encoder_rot.c
+        menu.c
+        imu.c
+        motor.c 
+        pid.c 
+        controler.c 
+        ssd1306/ssd1306.c
+        )
 
-add_executable(BalanceBotSoft BalanceBotSoft.c oled.c encoder_rot.c acc_gyro.c menu.c acc_gyro.c motor.c pid.c controler.c ssd1306/ssd1306.c)
-pico_generate_pio_header(BalanceBotSoft ${CMAKE_CURRENT_LIST_DIR}/quadrature_encoder.pio)
-
+# Set program name and version
 pico_set_program_name(BalanceBotSoft "BalanceBotSoft")
-pico_set_program_version(BalanceBotSoft "0.1") 
+pico_set_program_version(BalanceBotSoft "0.1")
 
+# Enable/disable stdio over UART/USB
 pico_enable_stdio_uart(BalanceBotSoft 1)
 pico_enable_stdio_usb(BalanceBotSoft 0)
 
-# Add the standard library to the build
-target_link_libraries(BalanceBotSoft
-        pico_stdlib)
-
-# Add the standard include files to the build
+# Add include files
 target_include_directories(BalanceBotSoft PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/ssd1306
   ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
 )
 
-# Add any user requested libraries
+# Add the standard library to the build
+target_link_libraries(BalanceBotSoft
+pico_stdlib)
+
+# Add other libraries
 target_link_libraries(BalanceBotSoft 
         hardware_i2c
         hardware_pio
@@ -58,7 +66,8 @@ target_link_libraries(BalanceBotSoft
         hardware_adc
         )
 
+# Add pio files
+pico_generate_pio_header(BalanceBotSoft ${CMAKE_CURRENT_LIST_DIR}/quadrature_encoder.pio)
 
-
+# Create additional build files
 pico_add_extra_outputs(BalanceBotSoft)
-

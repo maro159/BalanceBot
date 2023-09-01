@@ -1,5 +1,5 @@
 #include <stdio.h>
-// #include <string.h>
+#include <string.h>
 #include <stdlib.h>
 #include <math.h>
 // #include <ctype.h>
@@ -11,9 +11,31 @@
 #include "controler.h"
 #include "encoder_rot.h"
 
-static menu_t *current_menu; // TODO: is static ok?
+static menu_t *current_menu;
 static float initial_param;
 static float new_param;
+
+/* NORMAL MENUS */
+menu_t menu_run;
+menu_t menu_main;
+menu_t menu_settings;
+menu_t menu_pids;
+menu_t menu_pid_speed;
+menu_t menu_pid_imu;
+menu_t menu_pid_motor;
+
+/* PARAMETER MENUS */
+menu_t menu_pid_speed_kp;
+menu_t menu_pid_speed_ki;
+menu_t menu_pid_speed_kd;
+menu_t menu_pid_imu_kp;
+menu_t menu_pid_imu_ki;
+menu_t menu_pid_imu_kd;
+menu_t menu_pid_motor_kp;
+menu_t menu_pid_motor_ki;
+menu_t menu_pid_motor_kd;
+menu_t menu_motor_power;
+menu_t menu_angle;
 
 /* NORMAL MENU OPTIONS 
  * each option in array should have format {string, void*}
@@ -25,6 +47,7 @@ static float new_param;
 option_t menu_run_options[] =
 {
     {"CLICK TO STOP...", &menu_main},
+    {"", &menu_main},
 };
 option_t menu_main_options[] =
 {
@@ -73,106 +96,74 @@ option_t menu_pid_motor_options[] =
     {"EXIT", &menu_pids},
 };
 
-/* PARAM MENU OPTIONS 
- * each option array should have 2 entries with format {string, void*}
- * 1. entry: name of parameter and pointer to parameter
- * 2. entry: empty string and pointer to upper level menu 
- */
+void _create_menu_param(menu_t *menu, const char *param_name, float *param, float min, float max, float step)
+{
+    // allocate memory for options array
+    option_t *options = (option_t*)malloc(2 * sizeof(option_t));
+    options[0].name = strdup(param_name);   // parameter name
+    options[0].ptr = param;                  // pointer to actual parameter
+    options[1].name = strdup("");           // must be empty string
+    options[1].ptr = NULL;                  // place for pointer to upper-level menu  
 
-option_t menu_pid_speed_kp_options[] =
-{
-    {"speed kp", NULL}, // pointer to parameter to be changed
-    {"", &menu_pid_speed}, // pointer to upper level menu
-};
-option_t menu_pid_speed_ki_options[] =
-{
-    {"speed ki", NULL},
-    {"", &menu_pid_speed},
-};
-option_t menu_pid_speed_kd_options[] =
-{
-    {"speed kd", NULL},
-    {"", &menu_pid_speed},
-};
-option_t menu_pid_imu_kp_options[] =
-{
-    {"imu kp", NULL},
-    {"", &menu_pid_imu},
-};
-option_t menu_pid_imu_ki_options[] =
-{
-    {"imu ki", NULL},
-    {"", &menu_pid_imu},
-};
-option_t menu_pid_imu_kd_options[] =
-{
-    {"imu kd", NULL},
-    {"", &menu_pid_imu},
-};
-option_t menu_pid_motor_kp_options[] =
-{
-    {"motor kp", NULL},
-    {"", &menu_pid_motor},
-};
-option_t menu_pid_motor_ki_options[] =
-{
-    {"motor ki", NULL},
-    {"", &menu_pid_motor},
-};
-option_t menu_pid_motor_kd_options[] =
-{
-    {"motor kd", NULL},
-    {"", &menu_pid_motor},
-};
+    // initialize menu fields
+    menu->menu_type = MENU_PARAM;
+    menu->options = options;
+    menu->limits.min = min;
+    menu->limits.max = max;
+    menu->limits.step = step;
+}
 
-option_t menu_motor_power_options[] =
+void _create_menu_normal(menu_t *menu, option_t *options, size_t options_count)
 {
-    {"motor power", NULL},
-    {"", &menu_settings},
-};
-option_t menu_angle_options[] =
-{
-    {"zero angle", NULL},
-    {"", &menu_settings},
-};
+    // initialize menu fields
+    menu->menu_type = MENU_NORMAL;
+    menu->options = options;
+    menu->limits.min = 1;   // must be 1 because 0 is title of menu
+    menu->limits.max = options_count - 1;
+    menu->limits.step = 1;  // doesn't matter in normal menu anyway
 
+    // special case for empty menus (title only)
+    if(options_count <= 1)
+    {
+        menu->limits.min = 0;
+        menu->limits.max = 0;
+    }
 
-menu_t menu_run = {MENU_NORMAL, menu_run_options, {0, MENU_SIZE(menu_run_options)-1, 0}};
-menu_t menu_main = {MENU_NORMAL, menu_main_options, {1, MENU_SIZE(menu_main_options)-1, 1}};
-menu_t menu_settings = {MENU_NORMAL, menu_settings_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
-menu_t menu_pids = {MENU_NORMAL, menu_pids_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
-menu_t menu_pid_speed = {MENU_NORMAL, menu_pid_speed_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
-menu_t menu_pid_imu = {MENU_NORMAL, menu_pid_imu_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
-menu_t menu_pid_motor = {MENU_NORMAL, menu_pid_motor_options, {1, MENU_SIZE(menu_settings_options)-1, 1}};
-
-menu_t menu_pid_speed_kp = {MENU_PARAM, menu_pid_speed_kp_options, {0, 30, 0.1}};
-menu_t menu_pid_speed_ki = {MENU_PARAM, menu_pid_speed_ki_options, {0, 30, 0.1}};
-menu_t menu_pid_speed_kd = {MENU_PARAM, menu_pid_speed_kd_options, {0, 1, 0.001}};
-
-menu_t menu_pid_imu_kp = {MENU_PARAM, menu_pid_imu_kp_options, {0, 30, 0.1}};
-menu_t menu_pid_imu_ki = {MENU_PARAM, menu_pid_imu_ki_options, {0, 30, 0.1}};
-menu_t menu_pid_imu_kd = {MENU_PARAM, menu_pid_imu_kd_options, {0, 1, 0.001}};
-
-menu_t menu_pid_motor_kp = {MENU_PARAM, menu_pid_motor_kp_options, {0, 30, 0.1}};
-menu_t menu_pid_motor_ki = {MENU_PARAM, menu_pid_motor_ki_options, {0, 30, 0.1}};
-menu_t menu_pid_motor_kd = {MENU_PARAM, menu_pid_motor_kd_options, {0, 1, 0.001}};
-
-menu_t menu_motor_power = {MENU_PARAM, menu_motor_power_options, {0, 1, 0.01}};
-menu_t menu_angle = {MENU_PARAM, menu_angle_options, {-10, 10, 0.1}};
+    // assign this menu as parent for each MENU_PARAM submenu
+    for (size_t i = 0; i < options_count; i++)  // iterate through each option of this menu
+    {
+        menu_t *submenu = menu->options[i].ptr; // get pointed submenu
+        if (submenu != NULL)    // check if submenu is created
+        {
+            if(submenu->menu_type == MENU_PARAM) // execute only for parameter menu
+            {
+                submenu->options[1].ptr = menu; // assign this menu as parent
+            }
+        }
+    }
+}
 
 void init_menu()
 {
-    menu_bind_parameter(&motor_power_ratio, &menu_motor_power);
-    menu_bind_parameter(&pid_speed->kp_disp, &menu_pid_speed_kp);
-    menu_bind_parameter(&pid_speed->ki_disp, &menu_pid_speed_ki);
-    menu_bind_parameter(&pid_speed->kd_disp, &menu_pid_speed_kd);
-    menu_bind_parameter(&pid_imu->kp_disp, &menu_pid_imu_kp);
-    menu_bind_parameter(&pid_imu->ki_disp, &menu_pid_imu_ki);
-    menu_bind_parameter(&pid_imu->kd_disp, &menu_pid_imu_kd);
-    menu_bind_parameter(&pid_motor_a->kp_disp, &menu_pid_motor_kp);
-    menu_bind_parameter(&pid_motor_a->ki_disp, &menu_pid_motor_ki);
-    menu_bind_parameter(&pid_motor_a->kd_disp, &menu_pid_motor_kd);
-    menu_bind_parameter(&zero_angle, &menu_angle);
+    // Parameter menus need to be created first to correctly assign parents to them.
+    _create_menu_param(&menu_motor_power, "motor power", &motor_power_ratio, 0, 1, 0.1);
+    _create_menu_param(&menu_pid_speed_kp, "speed kp", &pid_speed->kp_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_speed_ki, "speed ki", &pid_speed->ki_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_speed_kd, "speed kd", &pid_speed->kd_disp, 0, 1, 0.001);
+    _create_menu_param(&menu_pid_imu_kp, "imu kp", &pid_imu->kp_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_imu_kp, "imu ki", &pid_imu->ki_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_imu_kp, "imu kd", &pid_imu->kd_disp, 0, 1, 0.001);
+    _create_menu_param(&menu_pid_motor_kp, "motor kp", &pid_motor_a->kp_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_motor_kp, "motor ki", &pid_motor_a->ki_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_motor_kp, "motor kd", &pid_motor_a->kd_disp, 0, 1, 0.001);
+    _create_menu_param(&menu_angle, "zero angle", &zero_angle, -15, 15, 0.1);
+    _create_menu_normal(&menu_pid_motor, menu_pid_motor_options, OPTIONS_COUNT(menu_pid_motor_options));
+    _create_menu_normal(&menu_pid_imu, menu_pid_imu_options, OPTIONS_COUNT(menu_pid_imu_options));
+    _create_menu_normal(&menu_pid_speed, menu_pid_speed_options, OPTIONS_COUNT(menu_pid_speed_options));
+    _create_menu_normal(&menu_pids, menu_pids_options, OPTIONS_COUNT(menu_pids_options));
+    _create_menu_normal(&menu_settings, menu_settings_options, OPTIONS_COUNT(menu_settings_options));
+    _create_menu_normal(&menu_run, menu_run_options, OPTIONS_COUNT(menu_run_options));
+    _create_menu_normal(&menu_main, menu_main_options, OPTIONS_COUNT(menu_main_options));    
 
     current_menu = &menu_main;
     encoder_limit(current_menu->limits.min, current_menu->limits.max);
@@ -181,12 +172,7 @@ void init_menu()
     oled_display_cursor(current_menu->limits.min);
 }
 
-void menu_bind_parameter(void *param, menu_t *menu)
-{
-    menu->options[0].ptr = param;
-}
-
-menu_t *menu_execute()
+menu_t *menu_get()
 {
     if(encoder_changed()) 
     {

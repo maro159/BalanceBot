@@ -49,7 +49,7 @@ void _set_pwm(Motor motor, uint16_t pwm, bool direction)
     }
 }
 
-void init_motors()
+void init_motor()
 {
     // // ** motor driver outputs **
     // gpio_set_function(MOTOR_A1, GPIO_FUNC_PWM);

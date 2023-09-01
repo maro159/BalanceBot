@@ -25,7 +25,7 @@ typedef enum Motor
 
 extern float motor_power_ratio;
 
-void init_motors();
+void init_motor();
 void init_servo();
 void servo_set_position();
 // power should be in range [-1, 1]

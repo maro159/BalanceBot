@@ -18,13 +18,11 @@
 #include "oled.h"
 #include "encoder_rot.h"
 #include "menu.h"
-#include "acc_gyro.h"
+#include "imu.h"
 #include "controler.h"
 
 volatile bool time_to_go = false; 
-
 uint32_t last_time_us = 0;
-
 const uint32_t sampling_time_us = 10 * 1000;
 float sampling_time_sec = 0.01;
 
@@ -94,11 +92,11 @@ int main()
 
     repeating_timer_t controler_timer;
     init();
-    init_motors();
+    init_motor();
     // init_servo();
     init_oled();
     init_encoder();
-    init_acc_gyro();
+    init_imu();
     init_controler();
     init_menu();
     /* Negative delay so means we will call repeating_timer_callback, and call it again 
@@ -118,7 +116,7 @@ int main()
             
             time_to_go = false;
         }
-        if(menu_execute() == &menu_run) is_run = true;
+        if(menu_get() == &menu_run) is_run = true;
         else is_run = false;
 
         if(!was_run && is_run) controler_run();
@@ -131,7 +129,7 @@ int main()
 int main()
 {    
     Init();
-    init_motors();
+    init_motor();
     const uint32_t timeout_us = 1000;
     uint8_t buf[30];
     uint32_t buf_head = 0;
