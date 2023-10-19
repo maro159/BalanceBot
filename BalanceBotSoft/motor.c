@@ -13,7 +13,7 @@
 
 float motor_power_ratio = 1;
 
-void _set_pwm(Motor motor, uint16_t pwm, bool direction)
+static void _set_pwm(Motor motor, uint16_t pwm, bool direction)
 {
     if(motor == MOTOR_A)    // motor A
     {

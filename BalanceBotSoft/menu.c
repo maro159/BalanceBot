@@ -96,7 +96,7 @@ option_t menu_pid_motor_options[] =
     {"EXIT", &menu_pids},
 };
 
-void _create_menu_param(menu_t *menu, const char *param_name, float *param, float min, float max, float step)
+static void _create_menu_param(menu_t *menu, const char *param_name, float *param, float min, float max, float step)
 {
     // allocate memory for options array
     option_t *options = (option_t*)malloc(2 * sizeof(option_t));
@@ -113,7 +113,7 @@ void _create_menu_param(menu_t *menu, const char *param_name, float *param, floa
     menu->limits.step = step;
 }
 
-void _create_menu_normal(menu_t *menu, option_t *options, size_t options_count)
+static void _create_menu_normal(menu_t *menu, option_t *options, size_t options_count)
 {
     // initialize menu fields
     menu->menu_type = MENU_NORMAL;
