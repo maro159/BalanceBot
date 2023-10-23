@@ -44,18 +44,18 @@ menu_t menu_angle;
  * IMPORTANT: First option should be name of this menu, and pointer to itself
  */
 
-option_t menu_run_options[] =
+static option_t menu_run_options[] =
 {
     {"CLICK TO STOP...", &menu_main},
     {"", &menu_main},
 };
-option_t menu_main_options[] =
+static option_t menu_main_options[] =
 {
     {"** MAIN MENU **", &menu_main},
     {"RUN", &menu_run},
     {"SETTINGS", &menu_settings},
 };
-option_t menu_settings_options[] =
+static option_t menu_settings_options[] =
 {
     {"** SETTINGS **", &menu_settings},
     {"PIDs", &menu_pids},
@@ -63,7 +63,7 @@ option_t menu_settings_options[] =
     {"zero angle", &menu_angle},
     {"EXIT", &menu_main},
 };
-option_t menu_pids_options[] =
+static option_t menu_pids_options[] =
 {
     {"** PIDs **", &menu_pids},
     {"PID - speed", &menu_pid_speed},
@@ -71,7 +71,7 @@ option_t menu_pids_options[] =
     {"PID - motor", &menu_pid_motor},
     {"EXIT", &menu_settings},
 };
-option_t menu_pid_speed_options[] =
+static option_t menu_pid_speed_options[] =
 {
     {"** PID - speed **", &menu_pid_speed},
     {"speed kp", &menu_pid_speed_kp},
@@ -79,7 +79,7 @@ option_t menu_pid_speed_options[] =
     {"speed kd", &menu_pid_speed_kd},
     {"EXIT", &menu_pids},
 };
-option_t menu_pid_imu_options[] =
+static option_t menu_pid_imu_options[] =
 {
     {"** PID - imu **", &menu_pid_imu},
     {"imu kp", &menu_pid_imu_kp},
@@ -87,7 +87,7 @@ option_t menu_pid_imu_options[] =
     {"imu kd", &menu_pid_imu_kd},
     {"EXIT", &menu_pids},
 };
-option_t menu_pid_motor_options[] =
+static option_t menu_pid_motor_options[] =
 {
     {"** PID - motor **", &menu_pid_motor},
     {"motor kp", &menu_pid_motor_kp},
