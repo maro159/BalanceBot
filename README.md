@@ -4,13 +4,11 @@ RPi Pico based self balancing robot developed as academic project on AGH UST
 
 **NOTE:** This project is still WIP (Work In Progress)
 
-| <img src="img/render.jpg" alt="render" width="500"/> | <img src="img/BalanceBot.gif" alt="gif" width="500"/> |
-|-|-|
-
-
-
 ## Overview
 A goal was to create two-wheel robot with ability to self-balance. 
+
+| <img src="img/render.jpg" alt="render" width="368"/> | <img src="img/BalanceBot.gif" alt="gif" width="368"/> |
+|-|-|
 
 ### Hardware
 - 2S LiIon/LiPo battery pack
@@ -54,6 +52,5 @@ There is a [python script](PC/main.py) included, which implements plotting data 
 - implement obstacle detection using ultrasonic sensors
 
 ## Attribution
-This projects use 
 - *slightly modified* [SSD1306 library by David Schramm](https://github.com/daschr/pico-ssd1306)
 - idea of PID cascade from [husarion/self-balancing-telepresence-robot](https://github.com/husarion/self-balancing-telepresence-robot) and [Husarion Medium blog](https://medium.com/husarion-blog/fresh-look-at-self-balancing-robot-algorithm-d50d41711d58)
