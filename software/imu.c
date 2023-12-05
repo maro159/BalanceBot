@@ -40,7 +40,7 @@ void imu_read_data()
     i2c_write_blocking(IMU_I2C, MPU6050_ADDR, &val, 1, true); // true to keep master control of bus
     i2c_read_blocking(IMU_I2C, MPU6050_ADDR, buffer, 6, false);
 
-    for (int i = 0; i < 3; i++)
+    for (uint i = 0; i < 3; i++)
     {
         accel[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);
     }

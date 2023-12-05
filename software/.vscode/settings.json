@@ -24,12 +24,5 @@
     "cmake.generator": "Ninja",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.associations": {
-        "stdlib.h": "c",
-        "stdio_uart.h": "c",
-        "stdio.h": "c",
-        "*.s": "c",
-        "adc.h": "c",
-        "controler.h": "c",
-        "math.h": "c"
     }
 }

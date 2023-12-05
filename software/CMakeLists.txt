@@ -18,14 +18,14 @@ if (PICO_SDK_VERSION_STRING VERSION_LESS "1.4.0")
   message(FATAL_ERROR "Raspberry Pi Pico SDK version 1.4.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
 endif()
 
-project(BalanceBotSoft C CXX ASM)
+project(BalanceBot C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add source files
-add_executable(BalanceBotSoft
-        BalanceBotSoft.c
+add_executable(BalanceBot
+        main.c
         oled.c
         encoder_rot.c
         menu.c
@@ -37,26 +37,26 @@ add_executable(BalanceBotSoft
         )
 
 # Set program name and version
-pico_set_program_name(BalanceBotSoft "BalanceBotSoft")
-pico_set_program_version(BalanceBotSoft "0.1")
+pico_set_program_name(BalanceBot "BalanceBot")
+pico_set_program_version(BalanceBot "0.1")
 
 # Enable/disable stdio over UART/USB
-pico_enable_stdio_uart(BalanceBotSoft 1)
-pico_enable_stdio_usb(BalanceBotSoft 0)
+pico_enable_stdio_uart(BalanceBot 1)
+pico_enable_stdio_usb(BalanceBot 0)
 
 # Add include files
-target_include_directories(BalanceBotSoft PRIVATE
+target_include_directories(BalanceBot PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/ssd1306
   ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
 )
 
 # Add the standard library to the build
-target_link_libraries(BalanceBotSoft
+target_link_libraries(BalanceBo
 pico_stdlib)
 
 # Add other libraries
-target_link_libraries(BalanceBotSoft 
+target_link_libraries(BalanceBot
         hardware_i2c
         hardware_pio
         hardware_timer
@@ -67,7 +67,7 @@ target_link_libraries(BalanceBotSoft
         )
 
 # Add pio files
-pico_generate_pio_header(BalanceBotSoft ${CMAKE_CURRENT_LIST_DIR}/quadrature_encoder.pio)
+pico_generate_pio_header(BalanceBot ${CMAKE_CURRENT_LIST_DIR}/quadrature_encoder.pio)
 
 # Create additional build files
-pico_add_extra_outputs(BalanceBotSoft)
+pico_add_extra_outputs(BalanceBot)
