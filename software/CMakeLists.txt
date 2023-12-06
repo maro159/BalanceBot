@@ -52,7 +52,7 @@ target_include_directories(BalanceBot PRIVATE
 )
 
 # Add the standard library to the build
-target_link_libraries(BalanceBo
+target_link_libraries(BalanceBot
 pico_stdlib)
 
 # Add other libraries
