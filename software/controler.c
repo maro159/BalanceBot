@@ -135,7 +135,8 @@ void init_controler(uint32_t sampling_time_us)
 void controler_update()
 {
     _refresh_data();
-
+    int32_t current_angle_int = (int32_t)(current_angle);
+    if(current_angle_int > 45 || current_angle_int < -45) controler_stop();
     pid_compute(pid_speed);     // compute angle offset to achieve target speed
     target_angle = zero_angle - target_angle_offset;
     pid_compute(pid_imu);       // compute motor speed to achieve target angle 
