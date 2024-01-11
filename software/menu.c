@@ -151,11 +151,11 @@ void init_menu()
     _create_menu_param(&menu_pid_speed_ki, "speed ki", &pid_speed->ki_disp, 0, 30, 0.1);
     _create_menu_param(&menu_pid_speed_kd, "speed kd", &pid_speed->kd_disp, 0, 1, 0.001);
     _create_menu_param(&menu_pid_imu_kp, "imu kp", &pid_imu->kp_disp, 0, 30, 0.1);
-    _create_menu_param(&menu_pid_imu_kp, "imu ki", &pid_imu->ki_disp, 0, 30, 0.1);
-    _create_menu_param(&menu_pid_imu_kp, "imu kd", &pid_imu->kd_disp, 0, 1, 0.001);
+    _create_menu_param(&menu_pid_imu_ki, "imu ki", &pid_imu->ki_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_imu_kd, "imu kd", &pid_imu->kd_disp, 0, 1, 0.001);
     _create_menu_param(&menu_pid_motor_kp, "motor kp", &pid_motor_a->kp_disp, 0, 30, 0.1);
-    _create_menu_param(&menu_pid_motor_kp, "motor ki", &pid_motor_a->ki_disp, 0, 30, 0.1);
-    _create_menu_param(&menu_pid_motor_kp, "motor kd", &pid_motor_a->kd_disp, 0, 1, 0.001);
+    _create_menu_param(&menu_pid_motor_ki, "motor ki", &pid_motor_a->ki_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_motor_kd, "motor kd", &pid_motor_a->kd_disp, 0, 1, 0.001);
     _create_menu_param(&menu_angle, "zero angle", &zero_angle, -15, 15, 0.1);
     _create_menu_normal(&menu_pid_motor, menu_pid_motor_options, OPTIONS_COUNT(menu_pid_motor_options));
     _create_menu_normal(&menu_pid_imu, menu_pid_imu_options, OPTIONS_COUNT(menu_pid_imu_options));

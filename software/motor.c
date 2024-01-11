@@ -75,7 +75,7 @@ void motor_encoder_request()
     quadrature_encoder_request_count(MOTOR_ENC_PIO, MOTOR_B); // motor B
 }
 
-int32_t motor_encoder_get(Motor motor)
+int32_t motor_encoder_fetch(Motor motor)
 {
     return quadrature_encoder_fetch_count(MOTOR_ENC_PIO, motor);    // TODO: divide by 4 or not
 }

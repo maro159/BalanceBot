@@ -35,7 +35,7 @@ void motor_limit(float motor_ratio);
 // latch encoder count
 void motor_encoder_request();
  // return latched encoder count, must be preceded with motor_encoder_request();
-int32_t motor_encoder_get(Motor motor);
+int32_t motor_encoder_fetch(Motor motor);
 
 
 #endif

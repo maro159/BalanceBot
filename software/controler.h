@@ -9,7 +9,7 @@ extern pid_ctrl pid_imu;
 extern pid_ctrl pid_motor_a;
 extern pid_ctrl pid_motor_b;
 
-void init_controler();
+void init_controler(uint32_t sampling_time_us);
 void controler_update();
 void controler_stop();
 void controler_run();

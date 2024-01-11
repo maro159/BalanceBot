@@ -5,9 +5,10 @@
 #include "pid.h"
 #include "motor.h"
 
-// TODO: clean sampling time value setting
-extern const uint32_t sampling_time_us; 
-extern float sampling_time_sec;
+static float sampling_time_sec;
+
+static float acc_angle_deg = 0.0;
+static float gyro_angular = 0.0;
 
 static float last_speeds[30] = {0};
 static uint32_t last_speeds_head = 0;
@@ -15,7 +16,7 @@ static uint32_t last_speeds_head = 0;
 static float current_robot_speed = 0.0;
 float target_robot_speed = 0.0; // for remote control
 
-float zero_angle = 11.5; // global
+float zero_angle = 8.0; // global
 static float target_angle = 0.0;
 static float target_angle_offset = 0.0;
 
@@ -50,8 +51,55 @@ set         &target_robotspeed          &target_angle           &target_motor_sp
 
 */
 
-void init_controler()
+static void _refresh_data() 
+{
+    // TODO: make independent from sampling timer
+    // parameter used in complementary filter. Pretty much dependent on sampling time.
+    float alpha = 0.990;
+    // float alpha = 0.990;
+
+    motor_encoder_request();
+    imu_get_data(&acc_angle_deg, &gyro_angular);
+    
+    int32_t motor_a_enc = motor_encoder_fetch(MOTOR_A);
+    int32_t motor_b_enc = motor_encoder_fetch(MOTOR_B);
+
+    /* unit of motor speed is 4 * rps (rotates per second)
+     * could be divided by 4 but is not
+     */
+    current_motor_a_speed = (motor_a_enc - motor_a_enc_last) / (MOTOR_ENCODER_TICKS * sampling_time_sec);
+    current_motor_b_speed = (motor_b_enc - motor_b_enc_last) / (MOTOR_ENCODER_TICKS * sampling_time_sec);
+    #if ENC_A_INVERT==1
+    current_motor_a_speed = -current_motor_a_speed;
+    #endif
+    #if ENC_B_INVERT==1
+    current_motor_b_speed = -current_motor_b_speed;
+    #endif
+
+    // implementation of complementary filter to obtain reliable angle
+    current_angle = alpha * (current_angle + sampling_time_sec * gyro_angular) + (1 - alpha) * acc_angle_deg;
+    // current_angle = (current_angle + sampling_time_sec * gyro_angular);  // gyroscope-only angle 
+    // current_angle = alpha * current_angle + (1 - alpha) * acc_angle_deg; // accelerometer-only angle
+
+
+    /* robot speed is calculated as moving average to achieve smooth control */
+    current_robot_speed = (current_motor_a_speed + current_motor_b_speed) / 2.0;
+    last_speeds[last_speeds_head++] = current_robot_speed;
+    if(last_speeds_head >= sizeof(last_speeds)/sizeof(last_speeds[0])) last_speeds_head = 0;
+
+    current_robot_speed = 0;
+    for(uint32_t i = 0; i < sizeof(last_speeds)/sizeof(last_speeds[0]); i++)
+    {
+        current_robot_speed += last_speeds[i];
+    }
+    current_robot_speed /= sizeof(last_speeds)/sizeof(last_speeds[0]);
+    motor_a_enc_last = motor_a_enc;
+    motor_b_enc_last = motor_b_enc;
+}
+
+void init_controler(uint32_t sampling_time_us)
 {   
+    sampling_time_sec = sampling_time_us / (1000000.0);
     float kp_speed = 3.0;
     float ki_speed = 3.0;
     float kd_speed = 0.080;
@@ -79,56 +127,11 @@ void init_controler()
     pid_limits(pid_motor_a, -1, 1); // max motor a power
     pid_limits(pid_motor_b, -1, 1); // max motor b power
 
-    imu_read_data();
+    _refresh_data();
     current_angle = acc_angle_deg;  // initial angle from accelerometer
 
 }
  
-static void _refresh_data() 
-{
-    // TODO: make independent from sampling timr
-    // parameter used in complementary filter. Pretty much dependent on sampling time.
-    float alpha = 0.990;
-
-    motor_encoder_request();
-    imu_read_data();
-    
-    int32_t motor_a_enc = motor_encoder_get(MOTOR_A);
-    int32_t motor_b_enc = motor_encoder_get(MOTOR_B);
-
-    /* unit of motor speed is 4 * rps (rotates per second)
-     * could be divided by 4 but is not
-     */
-    current_motor_a_speed = (motor_a_enc - motor_a_enc_last) / (MOTOR_ENCODER_TICKS * sampling_time_sec);
-    current_motor_b_speed = (motor_b_enc - motor_b_enc_last) / (MOTOR_ENCODER_TICKS * sampling_time_sec);
-    #if ENC_A_INVERT==1
-    current_motor_a_speed = -current_motor_a_speed;
-    #endif
-    #if ENC_B_INVERT==1
-    current_motor_b_speed = -current_motor_b_speed;
-    #endif
-
-    // implementation of complementary filter to obtain reliable angle
-    current_angle = alpha * (current_angle + sampling_time_sec * gyro_angular) + (1 - alpha) * acc_angle_deg;
-    // current_angle = (current_angle + sampling_time_sec * gyro_angular);  // gyroscope-only angle 
-    // current_angle = alpha * current_angle + (1 - alpha) * acc_angle_deg; // accelerometer-only angle
-
-
-    /* robot speed is calculated as moving average to achieve smooth control */
-    current_robot_speed = (current_motor_a_speed + current_motor_b_speed) / 2;
-    last_speeds[last_speeds_head++] = current_robot_speed;
-    if(last_speeds_head >= sizeof(last_speeds)/sizeof(last_speeds[0])) last_speeds_head = 0;
-
-    current_robot_speed = 0;
-    for(uint32_t i = 0; i < sizeof(last_speeds)/sizeof(last_speeds[0]); i++)
-    {
-        current_robot_speed += last_speeds[i];
-    }
-    current_robot_speed /= sizeof(last_speeds)/sizeof(last_speeds[0]);
-    motor_a_enc_last = motor_a_enc;
-    motor_b_enc_last = motor_b_enc;
-}
-
 void controler_update()
 {
     _refresh_data();

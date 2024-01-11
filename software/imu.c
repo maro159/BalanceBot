@@ -2,8 +2,6 @@
 #include "pins.h"
 #include "hardware/i2c.h"
 
-float acc_angle_deg;
-float gyro_angular;
 
 void init_imu()
 {
@@ -29,7 +27,7 @@ void init_imu()
 
 }
 
-void imu_read_data()
+void imu_get_data(float *acc_angle_deg, float *gyro_angular)
 {
     uint8_t buffer[6];
     int16_t accel[3];
@@ -62,14 +60,14 @@ void imu_read_data()
     int16_t acc_z = accel[2];
 
     // calculate angle from accelerometer data
-    acc_angle_deg = -atan2(acc_z, -acc_x) * (180/M_PI); 
+    *acc_angle_deg = -atan2(acc_z, -acc_x) * (180/M_PI); 
 
     int16_t gyro_x = gyro[0];
     int16_t gyro_y = gyro[1];
     int16_t gyro_z = gyro[2];
 
     // calculate angular speed from gyroscope data
-    gyro_angular = gyro_y / 131;
+    *gyro_angular = gyro_y / 131.0;
    
 }
 

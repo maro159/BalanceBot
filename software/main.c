@@ -21,10 +21,9 @@
 #include "imu.h"
 #include "controler.h"
 
-volatile bool time_to_go = false; 
-uint32_t last_time_us = 0;
+static volatile bool time_to_go = false; 
 const uint32_t sampling_time_us = 10 * 1000;
-float sampling_time_sec = 0.01;
+uint32_t last_time_us = 0;
 
 static void init()
 {
@@ -97,11 +96,11 @@ int main()
     init_oled();
     init_encoder();
     init_imu();
-    init_controler();
+    init_controler(sampling_time_us);
     init_menu();
     /* Negative delay so means we will call repeating_timer_callback, and call it again 
      * regardless of how long the callback took to execute */
-    add_repeating_timer_ms(-10, &controler_timer_callback, NULL, &controler_timer); 
+    add_repeating_timer_us(-(int64_t)(sampling_time_us), &controler_timer_callback, NULL, &controler_timer); 
     while(true)
     {
         if(time_to_go)

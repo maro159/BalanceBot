@@ -14,11 +14,8 @@
 #define USER_CTRL       0x6A
 #define MPU6050_ADDR    0x68
 
-extern float acc_angle_deg;
-extern float gyro_angular;
-
 void init_imu();
-void imu_read_data();
+void imu_get_data(float *acc_angle_deg, float *gyro_angular);
 // void imu_print();
 // void imu_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp);
 #endif
