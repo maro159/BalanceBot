@@ -106,13 +106,13 @@ void init_controler(uint32_t sampling_time_us)
         recursive_mutex_init(&remote_control_mutex);
     }
     sampling_time_sec = sampling_time_us / (1000000.0);
-    float kp_speed = 3.0;
-    float ki_speed = 3.0;
-    float kd_speed = 0.080;
+    float kp_speed = 2.7;
+    float ki_speed = 2.6;
+    float kd_speed = 0.085;
 
-    float kp_imu = 5.0;
+    float kp_imu = 5.2;
     float ki_imu = 0.0;
-    float kd_imu = 0.080;
+    float kd_imu = 0.085;
 
     float kp_motor = 0.2;
     float ki_motor = 0.0;
