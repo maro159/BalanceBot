@@ -17,6 +17,7 @@ class SerialReader:
         self.data4 = deque(maxlen=1000)
         self.data5 = deque(maxlen=1000)
         self.data6 = deque(maxlen=1000)
+        self.data7 = deque(maxlen=1000)
         self.lock = threading.Lock()
 
     def start(self):
@@ -34,13 +35,14 @@ class SerialReader:
             try:
                 line = self.ser.readline().decode('utf-8').strip()
                 values = line.split(',')
-                if len(values) == 6:
+                if len(values) == 7:
                     pid_speed_set = float(values[0])
                     pid_speed_in = float(values[1])
                     pid_imu_set = float(values[2])
                     pid_imu_in = float(values[3])
                     pid_motor_set = float(values[4])
                     pid_motor_in = float(values[5])
+                    pwm_out = float(values[6])
                     with self.lock:
                         self.data1.append(pid_speed_set)
                         self.data2.append(pid_speed_in)
@@ -48,6 +50,7 @@ class SerialReader:
                         self.data4.append(pid_imu_in)
                         self.data5.append(pid_motor_set)
                         self.data6.append(pid_motor_in)
+                        self.data7.append(pwm_out)
             except (UnicodeDecodeError, ValueError):
                 pass
 
@@ -60,6 +63,7 @@ class SerialReader:
                 list(self.data4),
                 list(self.data5),
                 list(self.data6),
+                list(self.data7),
             )
 
 
@@ -67,13 +71,14 @@ class Plotter:
     def __init__(self, reader):
         self.reader = reader
         self.is_running = False
-        self.fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(3, 1, sharex="all")
+        self.fig, (self.ax1, self.ax2, self.ax3, self.ax4) = plt.subplots(4, 1, sharex="all")
         self.line1, = self.ax1.plot([], label='set point')
         self.line2, = self.ax1.plot([], label='input')
         self.line3, = self.ax2.plot([], label='set point')
         self.line4, = self.ax2.plot([], label='input')
         self.line5, = self.ax3.plot([], label='set point')
         self.line6, = self.ax3.plot([], label='input')
+        self.line7, = self.ax4.plot([], label='pwm output')
         self.update_interval = 0.05  # Update plot every 0.1 seconds (10 times per second)
         self.lock = threading.Lock()
 
@@ -81,6 +86,7 @@ class Plotter:
         self.ax1.set_title('PID Speed')
         self.ax2.set_title('PID IMU')
         self.ax3.set_title('PID Motor')
+        self.ax4.set_title('PWM Output')
 
     def start(self):
         self.is_running = True
@@ -98,6 +104,7 @@ class Plotter:
                 data4,
                 data5,
                 data6,
+                data7,
             ) = self.reader.get_data()
             with self.lock:
                 self.line1.set_data(range(len(data1)), data1)
@@ -106,6 +113,7 @@ class Plotter:
                 self.line4.set_data(range(len(data4)), data4)
                 self.line5.set_data(range(len(data5)), data5)
                 self.line6.set_data(range(len(data6)), data6)
+                self.line7.set_data(range(len(data7)), data7)
 
             self.ax1.relim()
             self.ax1.autoscale_view(scaley=True)
@@ -113,9 +121,12 @@ class Plotter:
             self.ax2.autoscale_view(scaley=True)
             self.ax3.relim()
             self.ax3.autoscale_view(scaley=True)
+            self.ax4.relim()
+            self.ax4.autoscale_view(scaley=True)
             self.ax1.legend(loc='upper right', bbox_to_anchor=(1, 1))
             self.ax2.legend(loc='upper right', bbox_to_anchor=(1, 1))
             self.ax3.legend(loc='upper right', bbox_to_anchor=(1, 1))
+            self.ax4.legend(loc='upper right', bbox_to_anchor=(1, 1))
 
             self.fig.canvas.draw()
             time.sleep(self.update_interval)
@@ -124,6 +135,7 @@ class Plotter:
         self.ax1.legend()
         self.ax2.legend()
         self.ax3.legend()
+        self.ax4.legend()
         plt.subplots_adjust(hspace=0.4)  # Adjust vertical spacing between subplots
         plt.show()
 
