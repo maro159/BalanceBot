@@ -7,17 +7,22 @@
 #include "pid.h"
 #include "motor.h"
 #include "remote_control.h"
+#include "filters.h"
 
 static float sampling_time_sec;
 
 static float acc_angle_deg = 0.0;
 static float gyro_angular = 0.0;
 
-static float last_speeds[30] = {0};
-static uint32_t last_speeds_head = 0;
+static float in_speed[2] = {0};
+static float out_speed[2] = {0};
+// static float last_speeds[30] = {0};
+// static uint32_t last_speeds_head = 0;
 
 static float current_robot_speed = 0.0;
 static float target_robot_speed = 0.0;
+static float set_input[2] = {0};
+static float set_output[2] = {0};
 
 float zero_angle = 8.0; // global
 static float target_angle = 0.0;
@@ -45,6 +50,9 @@ pid_ctrl pid_motor_b;
 static int32_t motor_a_enc_last = 0; 
 static int32_t motor_b_enc_last = 0; 
 
+IIR_filter_t iir;
+IIR_filter_t iir2;
+
 
 /*
             pid_speed                   pid_imu                 pid_motor_a                 pid_motor_b
@@ -61,6 +69,9 @@ static void _refresh_data()
     float alpha = 0.990;
     // float alpha = 0.990;
     try_get_remote_target_speed(&target_robot_speed);
+    set_input[0] = target_robot_speed;
+    Low_Pass_IIR_Filter(&iir2, set_output, set_input);
+    target_robot_speed = set_output[0];
     motor_encoder_request();
     imu_get_data(&acc_angle_deg, &gyro_angular);
     
@@ -86,15 +97,19 @@ static void _refresh_data()
 
     /* robot speed is calculated as moving average to achieve smooth control */
     current_robot_speed = (current_motor_a_speed + current_motor_b_speed) / 2.0;
-    last_speeds[last_speeds_head++] = current_robot_speed;
-    if(last_speeds_head >= sizeof(last_speeds)/sizeof(last_speeds[0])) last_speeds_head = 0;
+    in_speed[0] = current_robot_speed;
+    Low_Pass_IIR_Filter(&iir, out_speed, in_speed);
+    current_robot_speed = out_speed[0];
 
-    current_robot_speed = 0;
-    for(uint32_t i = 0; i < sizeof(last_speeds)/sizeof(last_speeds[0]); i++)
-    {
-        current_robot_speed += last_speeds[i];
-    }
-    current_robot_speed /= sizeof(last_speeds)/sizeof(last_speeds[0]);
+    // last_speeds[last_speeds_head++] = current_robot_speed;
+    // if(last_speeds_head >= sizeof(last_speeds)/sizeof(last_speeds[0])) last_speeds_head = 0;
+
+    // current_robot_speed = 0;
+    // for(uint32_t i = 0; i < sizeof(last_speeds)/sizeof(last_speeds[0]); i++)
+    // {
+    //     current_robot_speed += last_speeds[i];
+    // }
+    // current_robot_speed /= sizeof(last_speeds)/sizeof(last_speeds[0]);
     motor_a_enc_last = motor_a_enc;
     motor_b_enc_last = motor_b_enc;
 }
@@ -106,17 +121,17 @@ void init_controler(uint32_t sampling_time_us)
         recursive_mutex_init(&remote_control_mutex);
     }
     sampling_time_sec = sampling_time_us / (1000000.0);
-    float kp_speed = 2.7;
-    float ki_speed = 2.6;
-    float kd_speed = 0.085;
+    float kp_speed = 3.0;   // 2.3
+    float ki_speed = 2.0;   // 2.8
+    float kd_speed = 0.040;  // 0.09
 
     float kp_imu = 5.2;
     float ki_imu = 0.0;
     float kd_imu = 0.085;
 
-    float kp_motor = 0.2;
-    float ki_motor = 0.0;
-    float kd_motor = 0.0;
+    float kp_motor = 0.10;
+    float ki_motor = 0.07;
+    float kd_motor = 0.00;
 
     pid_speed = pid_create(&pid_speed_ctrl, &current_robot_speed, &target_angle_offset, &target_robot_speed, kp_speed, ki_speed, kd_speed); 
     pid_imu = pid_create(&pid_imu_ctrl, &current_angle, &target_motors_speed, &target_angle, kp_imu, ki_imu, kd_imu);
@@ -128,7 +143,7 @@ void init_controler(uint32_t sampling_time_us)
     pid_sample(pid_motor_a, sampling_time_us);
     pid_sample(pid_motor_b, sampling_time_us);
 
-    pid_limits(pid_speed, -10, 18); // max angle offset to achieve speed
+    pid_limits(pid_speed, -15, 15); // max angle offset to achieve speed
     pid_limits(pid_imu, -10, 10);   // max motor speed
     pid_limits(pid_motor_a, -1, 1); // max motor a power
     pid_limits(pid_motor_b, -1, 1); // max motor b power
@@ -136,6 +151,13 @@ void init_controler(uint32_t sampling_time_us)
     _refresh_data();
     current_angle = acc_angle_deg;  // initial angle from accelerometer
 
+    // low pass to filter robot speed
+    iir.samplingTime = sampling_time_sec;
+    iir.tau = 0.12;
+    iir2.samplingTime = sampling_time_sec;
+    iir2.tau = 0.7;
+    Low_Pass_IIR_Filter_Init(&iir);
+    Low_Pass_IIR_Filter_Init(&iir2);
 }
  
 void controler_update()
@@ -172,6 +194,7 @@ void controler_stop()
 
 void controler_run()
 {
+    Low_Pass_IIR_Filter_Init(&iir);
     // set pids coeffs which may changed in menu
     pid_tune(pid_speed, pid_speed->kp_disp, pid_speed->ki_disp, pid_speed->kd_disp);
     pid_tune(pid_imu, pid_imu->kp_disp, pid_imu->ki_disp, pid_imu->kd_disp);
@@ -181,7 +204,7 @@ void controler_run()
     // turn on pids
     pid_set_mode(pid_speed, E_MODE_AUTO);
     pid_set_mode(pid_imu, E_MODE_AUTO);
-    // pid_set_mode(pid_motor_a, E_MODE_AUTO);
-    // pid_set_mode(pid_motor_b, E_MODE_AUTO);
+    pid_set_mode(pid_motor_a, E_MODE_AUTO);
+    pid_set_mode(pid_motor_b, E_MODE_AUTO);
 }
 

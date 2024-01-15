@@ -36,6 +36,7 @@ add_executable(BalanceBot
         ssd1306/ssd1306.c
         remote_control.c
         adc.c
+        filters.c
         )
 
 # Set program name and version

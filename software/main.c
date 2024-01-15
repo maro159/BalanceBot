@@ -119,7 +119,7 @@ int main()
             controler_update();
             // printf("*%u\n*",time_us_32()-last_time_us);
             // printf("%f\n", *pid_speed->setpoint);
-            // printf("%f,%f,%f,%f,%f,%f\n",*pid_speed->setpoint, *pid_speed->input, *pid_imu->setpoint, *pid_imu->input, *pid_motor_a->setpoint, *pid_motor_a->input);
+            printf("%f,%f,%f,%f,%f,%f\n",*pid_speed->setpoint, *pid_speed->input, *pid_imu->setpoint, *pid_imu->input, *pid_motor_a->setpoint, *pid_motor_a->input);
             
             time_to_go = false;
         }

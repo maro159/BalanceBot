@@ -31,7 +31,7 @@ bool try_get_remote_target_speed(float *out)
 {
     if(recursive_mutex_try_enter(&remote_control_mutex, NULL))
     {
-        *out = remote_target_speed*2;
+        *out = remote_target_speed*6;
         recursive_mutex_exit(&remote_control_mutex);
         return true;
     }

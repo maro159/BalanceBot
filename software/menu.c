@@ -35,6 +35,7 @@ menu_t menu_pid_motor_ki;
 menu_t menu_pid_motor_kd;
 menu_t menu_motor_power;
 menu_t menu_angle;
+menu_t menu_iir_tau;
 
 /* NORMAL MENU OPTIONS 
  * each option in array should have format {string, void*}
@@ -58,6 +59,7 @@ static option_t menu_settings_options[] =
 {
     {"** SETTINGS **", &menu_settings},
     {"PIDs", &menu_pids},
+    {"iir tau", &menu_iir_tau },
     {"motor power", &menu_motor_power},
     {"zero angle", &menu_angle},
     {"EXIT", &menu_main},
@@ -152,10 +154,11 @@ void init_menu()
     _create_menu_param(&menu_pid_imu_kp, "imu kp", &pid_imu->kp_disp, 0, 30, 0.1);
     _create_menu_param(&menu_pid_imu_ki, "imu ki", &pid_imu->ki_disp, 0, 30, 0.1);
     _create_menu_param(&menu_pid_imu_kd, "imu kd", &pid_imu->kd_disp, 0, 1, 0.001);
-    _create_menu_param(&menu_pid_motor_kp, "motor kp", &pid_motor_a->kp_disp, 0, 30, 0.1);
-    _create_menu_param(&menu_pid_motor_ki, "motor ki", &pid_motor_a->ki_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_motor_kp, "motor kp", &pid_motor_a->kp_disp, 0, 3, 0.01);
+    _create_menu_param(&menu_pid_motor_ki, "motor ki", &pid_motor_a->ki_disp, 0, 3, 0.01);
     _create_menu_param(&menu_pid_motor_kd, "motor kd", &pid_motor_a->kd_disp, 0, 1, 0.001);
     _create_menu_param(&menu_angle, "zero angle", &zero_angle, -15, 15, 0.1);
+    _create_menu_param(&menu_iir_tau, "iir speed tau", &iir.tau, 0, 1, 0.01);
     _create_menu_normal(&menu_pid_motor, menu_pid_motor_options, OPTIONS_COUNT(menu_pid_motor_options));
     _create_menu_normal(&menu_pid_imu, menu_pid_imu_options, OPTIONS_COUNT(menu_pid_imu_options));
     _create_menu_normal(&menu_pid_speed, menu_pid_speed_options, OPTIONS_COUNT(menu_pid_speed_options));
