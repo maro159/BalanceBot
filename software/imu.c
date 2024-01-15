@@ -1,3 +1,5 @@
+#include "pico/stdlib.h"
+#include "pico/float.h"
 #include "imu.h"
 #include "pins.h"
 #include "hardware/i2c.h"
@@ -60,7 +62,7 @@ void imu_get_data(float *acc_angle_deg, float *gyro_angular)
     int16_t acc_z = accel[2];
 
     // calculate angle from accelerometer data
-    *acc_angle_deg = -atan2(acc_z, -acc_x) * (180/M_PI); 
+    *acc_angle_deg = -atan2f(acc_z, -acc_x) * (180/M_PI); 
 
     int16_t gyro_x = gyro[0];
     int16_t gyro_y = gyro[1];

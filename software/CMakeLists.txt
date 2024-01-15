@@ -34,6 +34,8 @@ add_executable(BalanceBot
         pid.c 
         controler.c 
         ssd1306/ssd1306.c
+        remote_control.c
+        adc.c
         )
 
 # Set program name and version
@@ -64,6 +66,8 @@ target_link_libraries(BalanceBot
         hardware_clocks
         hardware_pwm
         hardware_adc
+        pico_sync
+        pico_multicore
         )
 
 # Add pio files

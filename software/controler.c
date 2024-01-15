@@ -1,9 +1,12 @@
+#include <stdio.h>
 #include "pico/stdlib.h"
+#include "pico/float.h"
 #include "controler.h"
 #include "pins.h"
 #include "imu.h"
 #include "pid.h"
 #include "motor.h"
+#include "remote_control.h"
 
 static float sampling_time_sec;
 
@@ -14,7 +17,7 @@ static float last_speeds[30] = {0};
 static uint32_t last_speeds_head = 0;
 
 static float current_robot_speed = 0.0;
-float target_robot_speed = 0.0; // for remote control
+static float target_robot_speed = 0.0;
 
 float zero_angle = 8.0; // global
 static float target_angle = 0.0;
@@ -57,10 +60,15 @@ static void _refresh_data()
     // parameter used in complementary filter. Pretty much dependent on sampling time.
     float alpha = 0.990;
     // float alpha = 0.990;
-
+    try_get_remote_target_speed(&target_robot_speed);
     motor_encoder_request();
     imu_get_data(&acc_angle_deg, &gyro_angular);
     
+    // implementation of complementary filter to obtain reliable angle
+    current_angle = alpha * (current_angle + sampling_time_sec * gyro_angular) + (1 - alpha) * acc_angle_deg;
+    // current_angle = (current_angle + sampling_time_sec * gyro_angular);  // gyroscope-only angle 
+    // current_angle = alpha * current_angle + (1 - alpha) * acc_angle_deg; // accelerometer-only angle
+
     int32_t motor_a_enc = motor_encoder_fetch(MOTOR_A);
     int32_t motor_b_enc = motor_encoder_fetch(MOTOR_B);
 
@@ -75,12 +83,6 @@ static void _refresh_data()
     #if ENC_B_INVERT==1
     current_motor_b_speed = -current_motor_b_speed;
     #endif
-
-    // implementation of complementary filter to obtain reliable angle
-    current_angle = alpha * (current_angle + sampling_time_sec * gyro_angular) + (1 - alpha) * acc_angle_deg;
-    // current_angle = (current_angle + sampling_time_sec * gyro_angular);  // gyroscope-only angle 
-    // current_angle = alpha * current_angle + (1 - alpha) * acc_angle_deg; // accelerometer-only angle
-
 
     /* robot speed is calculated as moving average to achieve smooth control */
     current_robot_speed = (current_motor_a_speed + current_motor_b_speed) / 2.0;
@@ -99,6 +101,10 @@ static void _refresh_data()
 
 void init_controler(uint32_t sampling_time_us)
 {   
+    if(!recursive_mutex_is_initialized(&remote_control_mutex))
+    {
+        recursive_mutex_init(&remote_control_mutex);
+    }
     sampling_time_sec = sampling_time_us / (1000000.0);
     float kp_speed = 3.0;
     float ki_speed = 3.0;
@@ -122,7 +128,7 @@ void init_controler(uint32_t sampling_time_us)
     pid_sample(pid_motor_a, sampling_time_us);
     pid_sample(pid_motor_b, sampling_time_us);
 
-    pid_limits(pid_speed, -10, 10); // max angle offset to achieve speed
+    pid_limits(pid_speed, -10, 18); // max angle offset to achieve speed
     pid_limits(pid_imu, -10, 10);   // max motor speed
     pid_limits(pid_motor_a, -1, 1); // max motor a power
     pid_limits(pid_motor_b, -1, 1); // max motor b power
@@ -135,8 +141,10 @@ void init_controler(uint32_t sampling_time_us)
 void controler_update()
 {
     _refresh_data();
+    // disable controler if falled
     int32_t current_angle_int = (int32_t)(current_angle);
     if(current_angle_int > 45 || current_angle_int < -45) controler_stop();
+
     pid_compute(pid_speed);     // compute angle offset to achieve target speed
     target_angle = zero_angle - target_angle_offset;
     pid_compute(pid_imu);       // compute motor speed to achieve target angle 

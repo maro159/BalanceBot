@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pico/stdlib.h"
+#include "pico/float.h"
+#include "pico/multicore.h"
 #include "hardware/uart.h"
 #include "hardware/gpio.h"
 #include "hardware/divider.h"
@@ -20,6 +22,8 @@
 #include "menu.h"
 #include "imu.h"
 #include "controler.h"
+#include "remote_control.h"
+#include "adc.h"
 
 static volatile bool time_to_go = false; 
 const uint32_t sampling_time_us = 10 * 1000;
@@ -44,15 +48,13 @@ static void init()
 
     gpio_set_function(SERWO, GPIO_FUNC_PWM);
 
-    // uart_init(BT_UART, BT_BAUDRATE);
-    stdio_uart_init_full(BT_UART, BT_BAUDRATE, BT_TX, BT_RX);
     // stdio_init_all();
+    stdio_uart_init_full(BT_UART, BT_BAUDRATE, BT_TX, BT_RX);
+    // uart_init(BT_UART, BT_BAUDRATE);
+    // uart_set_format(BT_UART, 8, 1, UART_PARITY_NONE);
+    // uart_set_hw_flow(BT_UART, false, false);
     gpio_set_function(BT_TX, GPIO_FUNC_UART);
     gpio_set_function(BT_RX, GPIO_FUNC_UART);
-    
-    adc_init();
-    adc_gpio_init(BATTERY_LVL);
-    adc_select_input(BATTERY_LVL_ADC);
         
     gpio_init(HC04_A_TRIG);
     gpio_init(HC04_B_TRIG); 
@@ -98,6 +100,11 @@ int main()
     init_imu();
     init_controler(sampling_time_us);
     init_menu();
+    init_adc();
+    multicore_launch_core1(remote_control_run);
+    // sleep_ms(5000);
+    // adc_print();
+
     /* Negative delay so means we will call repeating_timer_callback, and call it again 
      * regardless of how long the callback took to execute */
     add_repeating_timer_us(-(int64_t)(sampling_time_us), &controler_timer_callback, NULL, &controler_timer); 
@@ -111,7 +118,8 @@ int main()
             // printf("*%u\n*",dt_us);
             controler_update();
             // printf("*%u\n*",time_us_32()-last_time_us);
-            printf("%f,%f,%f,%f,%f,%f\n",*pid_speed->setpoint, *pid_speed->input, *pid_imu->setpoint, *pid_imu->input, *pid_motor_a->setpoint, *pid_motor_a->input);
+            // printf("%f\n", *pid_speed->setpoint);
+            // printf("%f,%f,%f,%f,%f,%f\n",*pid_speed->setpoint, *pid_speed->input, *pid_imu->setpoint, *pid_imu->input, *pid_motor_a->setpoint, *pid_motor_a->input);
             
             time_to_go = false;
         }
