@@ -100,18 +100,20 @@ static option_t menu_pid_motor_options[] =
 static void _create_menu_param(menu_t *menu, const char *param_name, float *param, float min, float max, float step)
 {
     // allocate memory for options array
-    option_t *options = (option_t*)malloc(2 * sizeof(option_t));
-    options[0].name = strdup(param_name);   // parameter name
-    options[0].ptr = param;                  // pointer to actual parameter
-    options[1].name = strdup("");           // must be empty string
-    options[1].ptr = NULL;                  // place for pointer to upper-level menu  
-
-    // initialize menu fields
-    menu->menu_type = MENU_PARAM;
-    menu->options = options;
-    menu->limits.min = min;
-    menu->limits.max = max;
-    menu->limits.step = step;
+    menu->options = (option_t*)malloc(2 * sizeof(option_t));
+    // check if memory allocated
+    if(menu->options != NULL) 
+    {
+        strncpy(menu->options[0].name, param_name, sizeof(menu->options[0].name) - 1);  // copy parameter name
+        menu->options[0].ptr = param;               // pointer to actual parameter
+        menu->options[1].name[0] = '\0';            // must be empty string
+        menu->options[1].ptr = NULL;                // place for pointer to upper-level menu  
+        // initialize menu fields
+        menu->menu_type = MENU_PARAM;
+        menu->limits.min = min;
+        menu->limits.max = max;
+        menu->limits.step = step;
+    }
 }
 
 static void _create_menu_normal(menu_t *menu, option_t *options, size_t options_count)
@@ -194,11 +196,11 @@ menu_t *menu_get()
         menu_t *nextMenu;
         if(current_menu->menu_type == MENU_NORMAL)
         {
-            nextMenu = current_menu->options[encoder_get()].ptr; // choose menu based on encoder selection
+            nextMenu = (menu_t*)(current_menu->options[encoder_get()].ptr); // choose menu based on encoder selection
         }
         else if(current_menu->menu_type == MENU_PARAM)
         {
-            nextMenu = current_menu->options[1].ptr;            // pointer to higher level menu
+            nextMenu = (menu_t*)(current_menu->options[1].ptr);            // pointer to higher level menu
             (*(float*)(current_menu->options[0].ptr)) = new_param;    // save value of parameter
             #ifdef DEBUG_MODE
             printf("saved: %3f\n", new_param);    // TODO: temporary
@@ -219,8 +221,8 @@ menu_t *menu_get()
         else if(nextMenu->menu_type == MENU_PARAM)
         {
             initial_param = (*(float*)(nextMenu->options[0].ptr));    // get initial value of parameter
-            int32_t enc_min = roundf(-abs((initial_param - nextMenu->limits.min)/(nextMenu->limits.step))); // calc limit for encoder
-            int32_t enc_max = roundf(abs((initial_param - nextMenu->limits.max)/(nextMenu->limits.step)));
+            int32_t enc_min = -floorf(fabsf((initial_param - nextMenu->limits.min)/(nextMenu->limits.step))); // calc limit for encoder
+            int32_t enc_max = floorf(fabsf((initial_param - nextMenu->limits.max)/(nextMenu->limits.step)));
             #ifdef DEBUG_MODE
             printf("enc min: %d\t enc max: %d\n", enc_min, enc_max);
             #endif

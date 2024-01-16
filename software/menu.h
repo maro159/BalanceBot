@@ -3,6 +3,7 @@
 #include "pico/stdlib.h"
 
 #define OPTIONS_COUNT(m) (sizeof(m)/sizeof(m[0]))
+#define MAX_NAME_LENGTH 20
 
 typedef enum menu_type_t
 {
@@ -12,7 +13,7 @@ typedef enum menu_type_t
 
 typedef struct option_t
 {
-    char* name;
+    char name[20];
     void* ptr;
 } option_t;
 
