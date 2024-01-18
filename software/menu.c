@@ -135,7 +135,7 @@ static void _create_menu_normal(menu_t *menu, option_t *options, size_t options_
     // assign this menu as parent for each MENU_PARAM submenu
     for (size_t i = 0; i < options_count; i++)  // iterate through each option of this menu
     {
-        menu_t *submenu = menu->options[i].ptr; // get pointed submenu
+        menu_t *submenu = (menu_t*)(menu->options[i].ptr); // get pointed submenu
         if (submenu != NULL)    // check if submenu is created
         {
             if(submenu->menu_type == MENU_PARAM) // execute only for parameter menu

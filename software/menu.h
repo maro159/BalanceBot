@@ -13,7 +13,7 @@ typedef enum menu_type_t
 
 typedef struct option_t
 {
-    char name[20];
+    char name[MAX_NAME_LENGTH];
     void* ptr;
 } option_t;
 
