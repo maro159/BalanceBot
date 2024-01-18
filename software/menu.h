@@ -4,6 +4,7 @@
 
 #define OPTIONS_COUNT(m) (sizeof(m)/sizeof(m[0]))
 #define MAX_NAME_LENGTH 20
+#define MAX_OPTIONS_COUNT 8
 
 typedef enum menu_type_t
 {
@@ -28,7 +29,7 @@ typedef struct limit_t
 typedef struct menu_t
 {
     menu_type_t menu_type;
-    option_t *options;  // pointer to array
+    option_t *options;
     limit_t limits;
 } menu_t;
 

@@ -97,10 +97,102 @@ static option_t menu_pid_motor_options[] =
     {"EXIT", &menu_pids},
 };
 
-static void _create_menu_param(menu_t *menu, const char *param_name, float *param, float min, float max, float step)
+/* PARAMETER MENUS */
+menu_t menu_pid_speed_kp;
+menu_t menu_pid_speed_ki;
+menu_t menu_pid_speed_kd;
+menu_t menu_pid_imu_kp;
+menu_t menu_pid_imu_ki;
+menu_t menu_pid_imu_kd;
+menu_t menu_pid_motor_kp;
+menu_t menu_pid_motor_ki;
+menu_t menu_pid_motor_kd;
+menu_t menu_motor_power;
+menu_t menu_angle;
+menu_t menu_iir_tau;
+
+/* PARAMETER MENU OPTIONS 
+ * each option array should have 2 entries with format {string, void*}
+ * 1. entry: name of parameter and pointer to parameter
+ * 2. entry: empty string and pointer to upper level menu
+ */
+// option_t menu_pid_speed_kp_options[] =
+// {
+// 	{"speed kp", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_pid_speed_ki_options[] =
+// {
+// 	{"speed ki", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_pid_speed_kd_options[] =
+// {
+// 	{"speed kd", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_pid_imu_kp_options[] =
+// {
+// 	{"imu kp", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_pid_imu_ki_options[] =
+// {
+// 	{"imu ki", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_pid_imu_kd_options[] =
+// {
+// 	{"imu kd", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_pid_motor_kp_options[] =
+// {
+// 	{"motor kp", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_pid_motor_ki_options[] =
+// {
+// 	{"motor ki", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_pid_motor_kd_options[] =
+// {
+// 	{"motor kd", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_motor_power_options[] =
+// {
+// 	{"motor power", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_angle_options[] =
+// {
+// 	{"zero angle", NULL},
+// 	{"", NULL},
+// };
+// option_t menu_iir_tau_options[] =
+// {
+// 	{"iir speed tau", NULL},
+// 	{"", NULL},
+// };
+option_t menu_pid_speed_kp_options[2];
+option_t menu_pid_speed_ki_options[2];
+option_t menu_pid_speed_kd_options[2];
+option_t menu_pid_imu_kp_options[2];
+option_t menu_pid_imu_ki_options[2];
+option_t menu_pid_imu_kd_options[2];
+option_t menu_pid_motor_kp_options[2];
+option_t menu_pid_motor_ki_options[2];
+option_t menu_pid_motor_kd_options[2];
+option_t menu_motor_power_options[2];
+option_t menu_angle_options[2];
+option_t menu_iir_tau_options[2];
+
+
+static void _create_menu_param(menu_t *menu, option_t *options, const char *param_name, float *param, float min, float max, float step)
 {
-    // allocate memory for options array
-    menu->options = (option_t*)malloc(2 * sizeof(option_t));
+    menu->options = options;
     // check if memory allocated
     if(menu->options != NULL) 
     {
@@ -149,18 +241,18 @@ static void _create_menu_normal(menu_t *menu, option_t *options, size_t options_
 void init_menu()
 {
     // Parameter menus need to be created first to correctly assign parents to them.
-    _create_menu_param(&menu_motor_power, "motor power", &motor_power_ratio, 0, 1, 0.1);
-    _create_menu_param(&menu_pid_speed_kp, "speed kp", &pid_speed->kp_disp, 0, 30, 0.1);
-    _create_menu_param(&menu_pid_speed_ki, "speed ki", &pid_speed->ki_disp, 0, 30, 0.1);
-    _create_menu_param(&menu_pid_speed_kd, "speed kd", &pid_speed->kd_disp, 0, 1, 0.001);
-    _create_menu_param(&menu_pid_imu_kp, "imu kp", &pid_imu->kp_disp, 0, 30, 0.1);
-    _create_menu_param(&menu_pid_imu_ki, "imu ki", &pid_imu->ki_disp, 0, 30, 0.1);
-    _create_menu_param(&menu_pid_imu_kd, "imu kd", &pid_imu->kd_disp, 0, 1, 0.001);
-    _create_menu_param(&menu_pid_motor_kp, "motor kp", &pid_motor_a->kp_disp, 0, 3, 0.01);
-    _create_menu_param(&menu_pid_motor_ki, "motor ki", &pid_motor_a->ki_disp, 0, 3, 0.01);
-    _create_menu_param(&menu_pid_motor_kd, "motor kd", &pid_motor_a->kd_disp, 0, 1, 0.001);
-    _create_menu_param(&menu_angle, "zero angle", &zero_angle, -15, 15, 0.1);
-    _create_menu_param(&menu_iir_tau, "iir speed tau", &iir.tau, 0, 1, 0.01);
+    _create_menu_param(&menu_motor_power, menu_motor_power_options, "motor power", &motor_power_ratio, 0, 1, 0.1);
+    _create_menu_param(&menu_pid_speed_kp, menu_pid_speed_kp_options, "speed kp", &pid_speed->kp_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_speed_ki, menu_pid_speed_ki_options, "speed ki", &pid_speed->ki_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_speed_kd, menu_pid_speed_kd_options, "speed kd", &pid_speed->kd_disp, 0, 1, 0.001);
+    _create_menu_param(&menu_pid_imu_kp, menu_pid_imu_kp_options, "imu kp", &pid_imu->kp_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_imu_ki, menu_pid_imu_ki_options, "imu ki", &pid_imu->ki_disp, 0, 30, 0.1);
+    _create_menu_param(&menu_pid_imu_kd, menu_pid_imu_kd_options, "imu kd", &pid_imu->kd_disp, 0, 1, 0.001);
+    _create_menu_param(&menu_pid_motor_kp, menu_pid_motor_kp_options, "motor kp", &pid_motor_a->kp_disp, 0, 3, 0.01);
+    _create_menu_param(&menu_pid_motor_ki, menu_pid_motor_ki_options, "motor ki", &pid_motor_a->ki_disp, 0, 3, 0.01);
+    _create_menu_param(&menu_pid_motor_kd, menu_pid_motor_kd_options, "motor kd", &pid_motor_a->kd_disp, 0, 1, 0.001);
+    _create_menu_param(&menu_angle, menu_angle_options, "zero angle", &zero_angle, -15, 15, 0.1);
+    _create_menu_param(&menu_iir_tau, menu_iir_tau_options, "iir speed tau", &iir.tau, 0, 1, 0.01);
     _create_menu_normal(&menu_pid_motor, menu_pid_motor_options, OPTIONS_COUNT(menu_pid_motor_options));
     _create_menu_normal(&menu_pid_imu, menu_pid_imu_options, OPTIONS_COUNT(menu_pid_imu_options));
     _create_menu_normal(&menu_pid_speed, menu_pid_speed_options, OPTIONS_COUNT(menu_pid_speed_options));
