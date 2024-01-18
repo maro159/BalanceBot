@@ -76,3 +76,4 @@ pico_generate_pio_header(BalanceBot ${CMAKE_CURRENT_LIST_DIR}/quadrature_encoder
 
 # Create additional build files
 pico_add_extra_outputs(BalanceBot)
+string(APPEND CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
