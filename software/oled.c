@@ -43,7 +43,7 @@ void oled_show_value(float value, float step)
 {
     const uint32_t max_chars = 20;
     uint32_t decimal_digits;
-    if (step >= 1.0) decimal_digits = 0; // for int-like values
+    if (step >= 1.0f) decimal_digits = 0; // for int-like values
     else
     {
         // calculate number of decimal digits

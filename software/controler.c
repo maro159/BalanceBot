@@ -96,7 +96,7 @@ static void _refresh_data()
     #endif
 
     /* robot speed is calculated as moving average to achieve smooth control */
-    current_robot_speed = (current_motor_a_speed + current_motor_b_speed) / 2.0;
+    current_robot_speed = (current_motor_a_speed + current_motor_b_speed) / 2.0f;
     in_speed[0] = current_robot_speed;
     Low_Pass_IIR_Filter(&iir, out_speed, in_speed);
     current_robot_speed = out_speed[0];
@@ -120,7 +120,7 @@ void init_controler(uint32_t sampling_time_us)
     {
         recursive_mutex_init(&remote_control_mutex);
     }
-    sampling_time_sec = sampling_time_us / (1000000.0);
+    sampling_time_sec = sampling_time_us / (1000000.0f);
     float kp_speed = 3.0;   // 2.3
     float ki_speed = 2.0;   // 2.8
     float kd_speed = 0.040;  // 0.09

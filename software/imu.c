@@ -70,7 +70,7 @@ void imu_get_data(float *acc_angle_deg, float *gyro_angular)
     int16_t gyro_z = gyro[2];
 
     // calculate angular speed from gyroscope data
-    *gyro_angular = gyro_y / 131.0;
+    *gyro_angular = gyro_y / 131.0f;
    
 }
 

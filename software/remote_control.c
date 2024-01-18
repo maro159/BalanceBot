@@ -21,7 +21,7 @@ void remote_control_run()
         value = (int8_t)(uart_getc(BT_UART));
         // uart_putc_raw(BT_UART, (char)value);
         recursive_mutex_enter_blocking(&remote_control_mutex);
-        remote_target_speed = (float)(value) / 128.0;
+        remote_target_speed = (float)(value) / 128.0f;
         printf("%f\n", remote_target_speed);
         recursive_mutex_exit(&remote_control_mutex);
     }
