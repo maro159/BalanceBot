@@ -22,7 +22,7 @@ static float out_speed[2] = {0};
 static float current_robot_speed = 0.0;
 static float target_robot_speed = 0.0;
 static float target_turn_speed = 0.0;
-static remote_targets_t remote_control;
+static remote_targets_t remote_control = {.robot_speed = 0.0, .turn_speed = 0.0};
 static float set_input[2] = {0};
 static float set_output[2] = {0};
 
@@ -72,9 +72,9 @@ static void _refresh_data()
     // float alpha = 0.990;
     // try_get_remote_target_speed(&target_robot_speed);
     try_get_remote_data(&remote_control);
-    set_input[0] = target_robot_speed;
+    set_input[0] = remote_control.robot_speed;
     Low_Pass_IIR_Filter(&iir2, set_output, set_input);
-    target_robot_speed = set_output[0];
+    remote_control.robot_speed = set_output[0];
     motor_encoder_request();
     imu_get_data(&acc_angle_deg, &gyro_angular);
     
@@ -188,6 +188,7 @@ void controler_update()
         motor_set_power(MOTOR_B,motor_b_power + remote_control.turn_speed);
     }
     }
+
 
 void controler_stop()
 {
