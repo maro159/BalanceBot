@@ -26,7 +26,7 @@ static remote_targets_t remote_control = {.robot_speed = 0.0, .turn_speed = 0.0}
 static float set_input[2] = {0};
 static float set_output[2] = {0};
 
-float zero_angle = 8.0; // global
+float zero_angle = 3.3f; // global
 static float target_angle = 0.0;
 static float target_angle_offset = 0.0;
 
@@ -83,6 +83,7 @@ static void _refresh_data()
     
     // implementation of complementary filter to obtain reliable angle
     current_angle = alpha * (current_angle + sampling_time_sec * gyro_angular) + (1 - alpha) * acc_angle_deg;
+    // PRINT("angle:%f\n", current_angle);
     // current_angle = (current_angle + sampling_time_sec * gyro_angular);  // gyroscope-only angle 
     // current_angle = alpha * current_angle + (1 - alpha) * acc_angle_deg; // accelerometer-only angle
 
@@ -149,7 +150,7 @@ void init_controler(uint32_t sampling_time_us)
     pid_sample(pid_motor_a, sampling_time_us);
     pid_sample(pid_motor_b, sampling_time_us);
 
-    pid_limits(pid_speed, -15, 15); // max angle offset to achieve speed
+    pid_limits(pid_speed, -10, 10); // max angle offset to achieve speed
     pid_limits(pid_imu, -10, 10);   // max motor speed
     pid_limits(pid_motor_a, -1, 1); // max motor a power
     pid_limits(pid_motor_b, -1, 1); // max motor b power
@@ -161,7 +162,7 @@ void init_controler(uint32_t sampling_time_us)
     iir.samplingTime = sampling_time_sec;
     iir.tau = 0.12;
     iir2.samplingTime = sampling_time_sec;
-    iir2.tau = 0.2;
+    iir2.tau = 0.05;
     Low_Pass_IIR_Filter_Init(&iir);
     Low_Pass_IIR_Filter_Init(&iir2);
 }
@@ -172,7 +173,6 @@ void controler_update()
         // disable controler if falled
     int32_t current_angle_int = (int32_t)(current_angle);
     if(current_angle_int > 45 || current_angle_int < -45) controler_stop();
-
     pid_compute(pid_speed);     // compute angle offset to achieve target speed
     target_angle = zero_angle - target_angle_offset;
     pid_compute(pid_imu);       // compute motor speed to achieve target angle 
