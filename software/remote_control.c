@@ -22,7 +22,7 @@ void remote_control_run()
     // uart_puts(BT_UART, "Running!\n");
     int8_t data[2]= {0};
     int32_t data_index = -1;
-    printf("Core 1 running!\n");
+    PRINT("Core 1 running!\n");
     while (1)
     {
         int8_t value = (int8_t)(uart_getc(BT_UART));
@@ -37,6 +37,7 @@ void remote_control_run()
             recursive_mutex_enter_blocking(&remote_control_mutex);
             remote_targets.robot_speed = (float)(data[0]) / (float)(127.0);
             remote_targets.turn_speed = (float)(data[1]) / (float)(127.0);
+            PRINT("SPEED:%f\nTURN:%f\n", remote_targets.robot_speed, remote_targets.turn_speed);
             recursive_mutex_exit(&remote_control_mutex);
             data_index = -1;
         }

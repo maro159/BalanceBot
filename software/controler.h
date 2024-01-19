@@ -4,6 +4,9 @@
 #include "pid.h"
 #include "filters.h"
 
+#define REMOTE_SPEED_FACTOR 15.0f
+#define REMOTE_TURN_FACTOR 4.0f
+
 extern float zero_angle;
 extern pid_ctrl pid_speed;
 extern pid_ctrl pid_imu;

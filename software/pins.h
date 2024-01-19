@@ -2,6 +2,12 @@
 #define _PINS_H_
 
 // #define DEBUG_MODE
+#define DEBUG 1
+#if DEBUG==1
+    #define PRINT(...) printf(__VA_ARGS__);
+#else
+    #define PRINT(...)
+#endif
 
 #define IMU_SDA 0
 #define IMU_SCL 1

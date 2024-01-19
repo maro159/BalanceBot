@@ -15,7 +15,7 @@
 #define DIR_FORWARD true
 #define DIR_REVERSE false
 
-#define MOTOR_ENCODER_TICKS 960 // encoder ticks for 1 rotate
+#define MOTOR_ENCODER_TICKS 320 // encoder ticks for 1 rotate
 
 typedef enum Motor
 {
