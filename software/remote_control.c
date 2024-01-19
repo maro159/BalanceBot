@@ -5,7 +5,13 @@
 #include "remote_control.h"
 
 recursive_mutex_t remote_control_mutex;
-static volatile float remote_target_speed = 0;
+// static volatile float remote_target_speed = 0;
+static volatile remote_targets_t remote_targets =
+{
+    .robot_speed = 0.0,
+    .turn_speed = 0.0,
+};
+
 
 void remote_control_run()
 {   
@@ -14,24 +20,48 @@ void remote_control_run()
         recursive_mutex_init(&remote_control_mutex);
     } 
     // uart_puts(BT_UART, "Running!\n");
+    int8_t data[2]= {0};
+    int32_t data_index = -1;
     printf("Core 1 running!\n");
-    int8_t value = 0;
     while (1)
     {
-        value = (int8_t)(uart_getc(BT_UART));
-        // uart_putc_raw(BT_UART, (char)value);
-        recursive_mutex_enter_blocking(&remote_control_mutex);
-        remote_target_speed = (float)(value) / 128.0;
-        printf("%f\n", remote_target_speed);
-        recursive_mutex_exit(&remote_control_mutex);
+        int8_t value = (int8_t)(uart_getc(BT_UART));
+        if(value == -128) data_index = 0;
+        else if(data_index >= 0)
+        {
+            data[data_index++] = value;
+        }
+
+        if(data_index >= 2)
+        {
+            recursive_mutex_enter_blocking(&remote_control_mutex);
+            remote_targets.robot_speed = (float)(data[0]) / (float)(127.0);
+            remote_targets.turn_speed = (float)(data[1]) / (float)(127.0);
+            recursive_mutex_exit(&remote_control_mutex);
+            data_index = -1;
+        }
     }
 }
 
-bool try_get_remote_target_speed(float *out)
+// bool try_get_remote_target_speed(float *out)
+// {
+//     if(recursive_mutex_try_enter(&remote_control_mutex, NULL))
+//     {
+//         *out = remote_target_speed*6;
+//         recursive_mutex_exit(&remote_control_mutex);
+//         return true;
+//     }
+//     else
+//     {
+//         return false;
+//     }
+// }
+
+bool try_get_remote_data(remote_targets_t *data_frame)
 {
     if(recursive_mutex_try_enter(&remote_control_mutex, NULL))
     {
-        *out = remote_target_speed*6;
+        *data_frame = remote_targets;
         recursive_mutex_exit(&remote_control_mutex);
         return true;
     }

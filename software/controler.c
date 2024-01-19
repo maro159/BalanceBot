@@ -21,6 +21,8 @@ static float out_speed[2] = {0};
 
 static float current_robot_speed = 0.0;
 static float target_robot_speed = 0.0;
+static float target_turn_speed = 0.0;
+static remote_targets_t remote_control;
 static float set_input[2] = {0};
 static float set_output[2] = {0};
 
@@ -68,7 +70,8 @@ static void _refresh_data()
     // parameter used in complementary filter. Pretty much dependent on sampling time.
     float alpha = 0.990;
     // float alpha = 0.990;
-    try_get_remote_target_speed(&target_robot_speed);
+    // try_get_remote_target_speed(&target_robot_speed);
+    try_get_remote_data(&remote_control);
     set_input[0] = target_robot_speed;
     Low_Pass_IIR_Filter(&iir2, set_output, set_input);
     target_robot_speed = set_output[0];
@@ -163,7 +166,7 @@ void init_controler(uint32_t sampling_time_us)
 void controler_update()
 {
     _refresh_data();
-    // disable controler if falled
+        // disable controler if falled
     int32_t current_angle_int = (int32_t)(current_angle);
     if(current_angle_int > 45 || current_angle_int < -45) controler_stop();
 
@@ -174,9 +177,17 @@ void controler_update()
     pid_compute(pid_motor_b);   // compute motor power (pwm) to achieve target speed
     motor_a_power = target_motors_speed * 0.1;  // TODO: use pid instead
     motor_b_power = target_motors_speed * 0.1;  // TODO: use pid instead
-    motor_set_power(MOTOR_A,motor_a_power);
-    motor_set_power(MOTOR_B,motor_b_power);
-}
+    if(remote_control.turn_speed >= 0)
+    {
+        motor_set_power(MOTOR_A,motor_a_power + remote_control.turn_speed);
+        motor_set_power(MOTOR_B,motor_b_power - remote_control.turn_speed);
+    }
+    else 
+     {
+        motor_set_power(MOTOR_A,motor_a_power - remote_control.turn_speed);
+        motor_set_power(MOTOR_B,motor_b_power + remote_control.turn_speed);
+    }
+    }
 
 void controler_stop()
 {
