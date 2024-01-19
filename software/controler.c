@@ -150,7 +150,7 @@ void init_controler(uint32_t sampling_time_us)
     pid_sample(pid_motor_b, sampling_time_us);
 
     pid_limits(pid_speed, -15, 15); // max angle offset to achieve speed
-    pid_limits(pid_imu, -30, 30);   // max motor speed
+    pid_limits(pid_imu, -10, 10);   // max motor speed
     pid_limits(pid_motor_a, -1, 1); // max motor a power
     pid_limits(pid_motor_b, -1, 1); // max motor b power
 
@@ -161,7 +161,7 @@ void init_controler(uint32_t sampling_time_us)
     iir.samplingTime = sampling_time_sec;
     iir.tau = 0.12;
     iir2.samplingTime = sampling_time_sec;
-    iir2.tau = 0.7;
+    iir2.tau = 0.2;
     Low_Pass_IIR_Filter_Init(&iir);
     Low_Pass_IIR_Filter_Init(&iir2);
 }
@@ -178,8 +178,8 @@ void controler_update()
     pid_compute(pid_imu);       // compute motor speed to achieve target angle 
     pid_compute(pid_motor_a);   // compute motor power (pwm) to achieve target speed
     pid_compute(pid_motor_b);   // compute motor power (pwm) to achieve target speed
-    motor_a_power = (target_motors_speed + remote_control.turn_speed) * 0.094;  // TODO: use pid instead
-    motor_b_power = (target_motors_speed - remote_control.turn_speed) * 0.1;  // TODO: use pid instead
+    motor_a_power = (target_motors_speed - remote_control.turn_speed) * 0.094;  // TODO: use pid instead
+    motor_b_power = (target_motors_speed + remote_control.turn_speed) * 0.1;  // TODO: use pid instead
     motor_set_power(MOTOR_A,motor_a_power);
     motor_set_power(MOTOR_B,motor_b_power);
     }
@@ -196,6 +196,9 @@ void controler_stop()
     *pid_imu->output = 0;
     *pid_motor_a->output = 0;
     *pid_motor_b->output = 0;
+    remote_control.turn_speed = 0;
+    motor_set_power(MOTOR_A,0);
+    motor_set_power(MOTOR_B,0);
     // TODO: parking
 }
 
