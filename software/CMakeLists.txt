@@ -9,7 +9,12 @@ set(CMAKE_CXX_STANDARD 17)
 # (note this can come from environment, CMake cache etc)
 # set(PICO_SDK_PATH "C:\proj2\Pico SDK v1.5.0\pico-sdk")
 
-set(PICO_BOARD pico CACHE STRING "Board type")
+#for standard pico 
+#set(PICO_BOARD pico CACHE STRING "Board type")
+
+#for pico w 
+set(PICO_BOARD pico_w)
+
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
@@ -37,6 +42,7 @@ add_executable(BalanceBot
         remote_control.c
         adc.c
         filters.c
+        spp_counter.c
         )
 
 # Set program name and version
@@ -51,6 +57,7 @@ pico_enable_stdio_usb(BalanceBot 0)
 target_include_directories(BalanceBot PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/ssd1306
+  #${CMAKE_CURRENT_LIST_DIR}/bluetooth_support
   ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
 )
 
@@ -69,6 +76,10 @@ target_link_libraries(BalanceBot
         hardware_adc
         pico_sync
         pico_multicore
+        pico_stdlib
+        pico_btstack_classic
+        pico_btstack_cyw43
+        pico_cyw43_arch_none
         )
 
 # Add pio files

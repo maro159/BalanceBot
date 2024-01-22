@@ -3,11 +3,8 @@
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
 
-#define def_check_mark 'f'
-#define def_right_turn
-#define def_left_turn
-#define def_no_turn
 
+#define EXTERNAL_BLUETOOTH 1 
 
 typedef struct remote_targets_t
 {
@@ -17,6 +14,7 @@ typedef struct remote_targets_t
 
 extern recursive_mutex_t remote_control_mutex;
 void remote_control_run();
+void remote_control_run_bt_internal();
 bool try_get_remote_target_speed(float *out);
 bool try_get_remote_data(struct remote_targets_t *data_frame);
 #endif

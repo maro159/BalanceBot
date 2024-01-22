@@ -5,6 +5,12 @@
 #include "pico/float.h"
 #include "pins.h"
 #include "remote_control.h"
+#include "pico/cyw43_arch.h"
+#include "pico/stdlib.h"
+#include "btstack_run_loop.h"
+#include "bluetooth_support/btstack_config.h"
+
+int btstack_main(int argc, const char * argv[]);
 
 recursive_mutex_t remote_control_mutex;
 // static volatile float remote_target_speed = 0;
@@ -55,6 +61,41 @@ void remote_control_run()
     char data[7]= {0};
     int32_t data_index = -1;
     printf("Core 1 running!\n");
+    while (1)
+    {
+        char value = (char)(uart_getc(BT_UART));
+        if(value == '#') { data_index = 0; }
+        else if(data_index >= 0)
+        {
+            data[data_index++] = value;
+        }
+       
+        if(data_index >= 7)
+        {
+            PRINT("Wait for mutex\n");
+            recursive_mutex_enter_blocking(&remote_control_mutex);
+            remote_data_convert(data, &remote_targets);
+            // remote_targets.robot_speed = (float)(data[0]) / (float)(127.0);
+            // remote_targets.turn_speed = (float)(data[1]) / (float)(127.0);
+            recursive_mutex_exit(&remote_control_mutex);
+            data_index = -1;
+        }
+    }
+}
+
+void remote_control_run_bt_internal()
+{   
+    if (cyw43_arch_init()) {
+        printf("cyw43_arch_init() failed.\n");
+        return;
+    }
+    char data[7]= {0};
+    int32_t data_index = -1;
+    printf("Core 1 running!\n");
+
+    btstack_main(0, NULL);
+    btstack_run_loop_execute();
+
     while (1)
     {
         char value = (char)(uart_getc(BT_UART));

@@ -28,6 +28,7 @@
 static volatile bool time_to_go = false; 
 const uint32_t sampling_time_us = 10 * 1000;
 uint32_t last_time_us = 0;
+void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);
 
 static void init()
 {
@@ -85,6 +86,8 @@ bool controler_timer_callback(repeating_timer_t *t)
     time_to_go = true; 
     return true; //to continue repeating 
 }
+
+void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);
 
 int main() 
 {

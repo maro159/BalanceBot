@@ -24,6 +24,8 @@
     "cmake.generator": "Ninja",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.associations": {
-        "remote_control.h": "c"
+        "remote_control.h": "c",
+        "btstack_run_loop.h": "c",
+        "btstack.h": "c"
     }
 }
