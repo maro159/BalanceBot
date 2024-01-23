@@ -26,6 +26,7 @@
     "files.associations": {
         "remote_control.h": "c",
         "btstack_run_loop.h": "c",
-        "btstack.h": "c"
+        "btstack.h": "c",
+        "stdlib.h": "c"
     }
 }

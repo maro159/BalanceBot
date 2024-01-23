@@ -87,13 +87,10 @@ bool controler_timer_callback(repeating_timer_t *t)
     return true; //to continue repeating 
 }
 
-void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);
-
 int main() 
 {
     bool is_run = false;
     bool was_run = false;
-
     repeating_timer_t controler_timer;
     init();
     init_motor();
@@ -104,8 +101,10 @@ int main()
     init_controler(sampling_time_us);
     init_menu();
     init_adc();
-    multicore_launch_core1(remote_control_run);
-    // sleep_ms(5000);
+    printf("MAIN\n");
+    // multicore_launch_core1(remote_control_run);
+    multicore_launch_core1(remote_control_run_bt_internal);
+    sleep_ms(5000);
     // adc_print();
 
     /* Negative delay so means we will call repeating_timer_callback, and call it again 

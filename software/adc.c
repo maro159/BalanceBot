@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "pico/stdlib.h"
 #include "adc.h"
 #include "pins.h"

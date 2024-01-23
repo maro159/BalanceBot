@@ -17,4 +17,6 @@ void remote_control_run();
 void remote_control_run_bt_internal();
 bool try_get_remote_target_speed(float *out);
 bool try_get_remote_data(struct remote_targets_t *data_frame);
+void remote_data_convert(char *data, volatile remote_targets_t *remote_values);
+void get_bt_packet(uint8_t *packet, uint16_t size);
 #endif

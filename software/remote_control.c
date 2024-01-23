@@ -8,11 +8,14 @@
 #include "pico/cyw43_arch.h"
 #include "pico/stdlib.h"
 #include "btstack_run_loop.h"
-#include "bluetooth_support/btstack_config.h"
+// #include "bluetooth_support/btstack_config.h"
 
 int btstack_main(int argc, const char * argv[]);
-
 recursive_mutex_t remote_control_mutex;
+
+volatile static char data[7]= {0}; 
+volatile static int32_t data_index = -1;
+
 // static volatile float remote_target_speed = 0;
 static volatile remote_targets_t remote_targets =
 {
@@ -20,7 +23,36 @@ static volatile remote_targets_t remote_targets =
     .turn_speed = 0.0,
 };
 
-void remote_data_convert(char *data,volatile remote_targets_t *remote_values)
+void get_bt_packet(uint8_t *packet, uint16_t size)
+{
+    for(int i = 0; i<size; i++)
+    {
+        char value = (char)packet[i];
+        if(value == '#') { data_index = 0; }
+        else if(data_index >= 0)
+        {
+            data[data_index++] = value;
+        }
+       
+        if(data_index >= 7)
+        {
+            char data_local[7];
+            for (int32_t i=0; i<7; i++)
+            {
+                data_local[i] = data[i];
+            }
+            PRINT("Wait for mutex\n");
+            recursive_mutex_enter_blocking(&remote_control_mutex);
+            remote_data_convert(data_local, &remote_targets);
+            // remote_targets.robot_speed = (float)(data[0]) / (float)(127.0);
+            // remote_targets.turn_speed = (float)(data[1]) / (float)(127.0);
+            recursive_mutex_exit(&remote_control_mutex);
+            data_index = -1;
+        }
+    }
+}
+
+void remote_data_convert(char *data, volatile remote_targets_t *remote_values)
 {
     char angle_array[4] = {0}; 
     char radius_array[5] = {0}; 
@@ -58,7 +90,7 @@ void remote_control_run()
         recursive_mutex_init(&remote_control_mutex);
     } 
     // uart_puts(BT_UART, "Running!\n");
-    char data[7]= {0};
+    
     int32_t data_index = -1;
     printf("Core 1 running!\n");
     while (1)
@@ -72,9 +104,14 @@ void remote_control_run()
        
         if(data_index >= 7)
         {
+            char data_local[7];
+            for (int32_t i=0; i<7; i++)
+            {
+                data_local[i] = data[i];
+            }
             PRINT("Wait for mutex\n");
             recursive_mutex_enter_blocking(&remote_control_mutex);
-            remote_data_convert(data, &remote_targets);
+            remote_data_convert(data_local, &remote_targets);
             // remote_targets.robot_speed = (float)(data[0]) / (float)(127.0);
             // remote_targets.turn_speed = (float)(data[1]) / (float)(127.0);
             recursive_mutex_exit(&remote_control_mutex);
@@ -84,38 +121,17 @@ void remote_control_run()
 }
 
 void remote_control_run_bt_internal()
-{   
+{ 
+    printf("Core 1 running!\n");
     if (cyw43_arch_init()) {
         printf("cyw43_arch_init() failed.\n");
         return;
     }
-    char data[7]= {0};
-    int32_t data_index = -1;
-    printf("Core 1 running!\n");
+    int32_t data_index = -1;    
+
 
     btstack_main(0, NULL);
     btstack_run_loop_execute();
-
-    while (1)
-    {
-        char value = (char)(uart_getc(BT_UART));
-        if(value == '#') { data_index = 0; }
-        else if(data_index >= 0)
-        {
-            data[data_index++] = value;
-        }
-       
-        if(data_index >= 7)
-        {
-            PRINT("Wait for mutex\n");
-            recursive_mutex_enter_blocking(&remote_control_mutex);
-            remote_data_convert(data, &remote_targets);
-            // remote_targets.robot_speed = (float)(data[0]) / (float)(127.0);
-            // remote_targets.turn_speed = (float)(data[1]) / (float)(127.0);
-            recursive_mutex_exit(&remote_control_mutex);
-            data_index = -1;
-        }
-    }
 }
 
 // bool try_get_remote_target_speed(float *out)
