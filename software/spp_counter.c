@@ -50,6 +50,7 @@
  
 #include "btstack.h"
 #include "remote_control.h"
+#include "pins.h"
 
 #define RFCOMM_SERVER_CHANNEL 1
 #define HEARTBEAT_PERIOD_MS 1000
@@ -93,8 +94,7 @@ static void  heartbeat_handler(struct btstack_timer_source *ts){
 // put your own function here to send to android app  //
 ////////////////////////////////////////////////////////
     if (rfcomm_channel_id){
-        snprintf(lineBuffer, sizeof(lineBuffer), "BTstack counter %04u\n", ++counter);
-        printf("%s", lineBuffer);    
+        snprintf(lineBuffer, sizeof(lineBuffer), "BTstack counter %04u\n", ++counter); 
 
         rfcomm_request_can_send_now_event(rfcomm_channel_id);
     }
@@ -184,22 +184,16 @@ int btstack_main(int argc, const char * argv[]);
 int btstack_main(int argc, const char * argv[]){
     (void)argc;
     (void)argv;
-    
- 	// gpio_init(BUTTON);
-	// gpio_init(BLUE_LED);
-	// gpio_set_dir(BUTTON,GPIO_IN);
-	// gpio_pull_up(BUTTON);
-	// gpio_set_dir(BLUE_LED,GPIO_OUT);
-	// gpio_put(BLUE_LED,0);   
-    printf("bt stack main \n");
+     
+    PRINT("bt stack main \n");
     //one_shot_timer_setup();
     spp_service_setup();
 
     gap_discoverable_control(1);
     gap_ssp_set_io_capability(SSP_IO_CAPABILITY_DISPLAY_YES_NO);
-    gap_set_local_name("SPP Counter 00:00:00:00:00:00");
+    gap_set_local_name("BalanceBot 00:00:00:00:00:00");
     hci_power_control(HCI_POWER_ON);   
-    printf("bt stack main end \n");
+    PRINT("bt stack main end \n");
     return 0;
 }
 

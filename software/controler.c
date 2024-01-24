@@ -128,13 +128,13 @@ void init_controler(uint32_t sampling_time_us)
         recursive_mutex_init(&remote_control_mutex);
     }
     sampling_time_sec = sampling_time_us / (1000000.0);
-    float kp_speed = 3.0;   // 2.3
+    float kp_speed = 3.2;   // 2.3
     float ki_speed = 2.0;   // 2.8
-    float kd_speed = 0.040;  // 0.09
+    float kd_speed = 0.020;  // 0.09
 
-    float kp_imu = 5.2;
-    float ki_imu = 0.0;
-    float kd_imu = 0.085;
+    float kp_imu = 3.0;
+    float ki_imu = 0.8;
+    float kd_imu = 0.050;
 
     float kp_motor = 0.10;
     float ki_motor = 0.07;
@@ -150,7 +150,7 @@ void init_controler(uint32_t sampling_time_us)
     pid_sample(pid_motor_a, sampling_time_us);
     pid_sample(pid_motor_b, sampling_time_us);
 
-    pid_limits(pid_speed, -10, 10); // max angle offset to achieve speed
+    pid_limits(pid_speed, -15, 15); // max angle offset to achieve speed
     pid_limits(pid_imu, -10, 10);   // max motor speed
     pid_limits(pid_motor_a, -1, 1); // max motor a power
     pid_limits(pid_motor_b, -1, 1); // max motor b power
@@ -162,7 +162,7 @@ void init_controler(uint32_t sampling_time_us)
     iir.samplingTime = sampling_time_sec;
     iir.tau = 0.12;
     iir2.samplingTime = sampling_time_sec;
-    iir2.tau = 0.05;
+    iir2.tau = 0.3;
     Low_Pass_IIR_Filter_Init(&iir);
     Low_Pass_IIR_Filter_Init(&iir2);
 }

@@ -74,6 +74,11 @@ void remote_data_convert(char *data, volatile remote_targets_t *remote_values)
     
     robot_speed_calculated = radius_value * sinf(angle_value_rad) / 1000.0f;
     turn_speed_calculated = radius_value * cosf(angle_value_rad) / 1000.0f;
+
+    if (robot_speed_calculated < 0)
+    {
+        turn_speed_calculated = -turn_speed_calculated;
+    }
 	
     PRINT("speed:%f\n", robot_speed_calculated);
     PRINT("turn:%f\n", turn_speed_calculated);

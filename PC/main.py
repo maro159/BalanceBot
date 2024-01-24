@@ -154,7 +154,7 @@ class GUI:
         self.root.mainloop()
 
 def main():
-    reader = SerialReader('COM10')
+    reader = SerialReader('COM12')
     plotter = Plotter(reader)
     gui = GUI(reader)
 
